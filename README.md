@@ -9,27 +9,27 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/HuzaifaKhalid1311/DropSauce?style=for-the-badge&logo=github&label=latest"></a>
+  <a href="https://github.com/heyshaquib/Yomira/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/heyshaquib/Yomira?style=for-the-badge&logo=github&label=latest"></a>
   <a href="https://discord.com/channels/1435615296202477581/1435650246163169382/1435651186140119091"><img alt="Discord online users" src="https://img.shields.io/discord/1435615296202477581?style=for-the-badge&logo=discord&logoColor=white&label=discord&color=5865F2"></a>
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases"><img alt="Total downloads" src="https://img.shields.io/github/downloads/HuzaifaKhalid1311/DropSauce/total?style=for-the-badge&logo=github&label=downloads"></a>
-  <a href="LICENSE"><img alt="GPLv3 license" src="https://img.shields.io/github/license/HuzaifaKhalid1311/DropSauce?style=for-the-badge"></a>
+  <a href="https://github.com/heyshaquib/Yomira/releases"><img alt="Total downloads" src="https://img.shields.io/github/downloads/heyshaquib/Yomira/total?style=for-the-badge&logo=github&label=downloads"></a>
+  <a href="LICENSE"><img alt="GPLv3 license" src="https://img.shields.io/github/license/heyshaquib/Yomira?style=for-the-badge"></a>
 </p>
 
 <p align="center">
   <a href="https://developer.android.com/"><img alt="Made for Android" src="https://img.shields.io/badge/Made%20for-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white"></a>
-  <a href="https://kotlinlang.org/"><img alt="Kotlin" src="https://img.shields.io/github/languages/top/HuzaifaKhalid1311/DropSauce?style=for-the-badge&logo=kotlin&logoColor=white"></a>
+  <a href="https://kotlinlang.org/"><img alt="Kotlin" src="https://img.shields.io/github/languages/top/heyshaquib/Yomira?style=for-the-badge&logo=kotlin&logoColor=white"></a>
   <a href="https://developer.android.com/compose"><img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white"></a>
   <a href="https://m3.material.io/"><img alt="Material 3 Expressive" src="https://img.shields.io/badge/Material%203-Expressive-6750A4?style=for-the-badge&logo=materialdesign&logoColor=white"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest"><strong>Download APK</strong></a>
+  <a href="https://github.com/heyshaquib/Yomira/releases/latest"><strong>Download APK</strong></a>
   |
   <a href="https://drop-sauce.app"><strong>Website</strong></a>
   |
   <a href="https://discord.com/channels/1435615296202477581/1435650246163169382/1435651186140119091"><strong>Discord</strong></a>
   |
-  <a href="https://github.com/HuzaifaKhalid1311/DropSauce/issues"><strong>Issues</strong></a>
+  <a href="https://github.com/heyshaquib/Yomira/issues"><strong>Issues</strong></a>
 </p>
 
 ---
@@ -95,17 +95,17 @@ Yomira is a free and open-source manga reader for Android, built to feel quick, 
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=HuzaifaKhalid1311%2FDropSauce&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=heyshaquib%2FYomira&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=HuzaifaKhalid1311/DropSauce&type=date&theme=dark&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=HuzaifaKhalid1311/DropSauce&type=date&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=HuzaifaKhalid1311/DropSauce&type=date&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=heyshaquib/Yomira&type=date&theme=dark&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=heyshaquib/Yomira&type=date&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=heyshaquib/Yomira&type=date&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
  </picture>
 </a>
 
 ## Install
 
-1. Open the [latest GitHub release](https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest).
+1. Open the [latest GitHub release](https://github.com/heyshaquib/Yomira/releases/latest).
 2. Download the newest `Yomira` APK.
 3. Install it on a compatible Android device.
 4. Add your preferred source or extension repository, then start reading.

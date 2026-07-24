@@ -398,7 +398,7 @@ private fun AboutHero(appVersion: String) {
 				)
 				AboutMetaPill(
 					icon = R.drawable.ic_github,
-					text = "HuzaifaKhalid1311",
+					text = "heyshaquib",
 				)
 			}
 		}
