@@ -439,7 +439,7 @@
     <string name="switch_pages_volume_buttons_summary">Använd volymknapparna för att bläddra</string>
     <string name="error_multiple_states_not_supported">Filtrering efter flera publiceringsstatusar stöds inte av denna mangakälla</string>
     <string name="error_filter_states_genre_not_supported">Filtrering efter både genrer och publiceringsstatusar stöds inte av denna källa</string>
-    <string name="unsupported_backup_message">Var god välj en vederbörlig DropSauce-säkerhetskopiering</string>
+    <string name="unsupported_backup_message">Var god välj en vederbörlig Yomira-säkerhetskopiering</string>
     <string name="content_type_novel">Roman</string>
     <string name="error_connection_reset">Anslutning återställd av fjärrvärden</string>
     <string name="restoring_backup">Återställer säkerhetskopia</string>
@@ -468,7 +468,7 @@
     <string name="recent_queries">Senaste sökningar</string>
     <string name="all_languages">Alla språk</string>
     <string name="source_pinned">Källa fastnålad</string>
-    <string name="plugin_incompatible">Inkompatibelt tillägg eller internt fel. Kontrollera att du använder den senaste versionen av tillägget och DropSauce</string>
+    <string name="plugin_incompatible">Inkompatibelt tillägg eller internt fel. Kontrollera att du använder den senaste versionen av tillägget och Yomira</string>
     <string name="connection_ok">Anslutningen är OK</string>
     <string name="invalid_proxy_configuration">Ogiltig proxykonfiguration</string>
     <string name="scrobbler_auth_required">Logga in på %s för att fortsätta</string>
@@ -495,7 +495,7 @@
     <string name="handle_links_summary">Hantera mangalänkar från externa applikationer (t.ex. webbläsare). Du kan även behöva tillåta det manuellt i systemets inställningar för applikationen</string>
     <string name="email">E-mail</string>
     <string name="sources_unpinned">Källor lösgjorda</string>
-    <string name="plugin_incompatible_with_cause">Tilläggsfel: %s\nKontrollera att du använder den senaste versionen av tillägget och DropSauce</string>
+    <string name="plugin_incompatible_with_cause">Tilläggsfel: %s\nKontrollera att du använder den senaste versionen av tillägget och Yomira</string>
     <string name="show_quick_filters">Visa snabbfilter</string>
     <string name="skip_all">Hoppa över alla</string>
     <string name="updated_long_ago">Uppdaterad för länge sedan</string>

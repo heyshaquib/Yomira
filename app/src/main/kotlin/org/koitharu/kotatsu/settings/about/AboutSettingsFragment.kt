@@ -128,7 +128,7 @@ class AboutSettingsFragment : BaseComposeSettingsFragment(R.string.about) {
 		viewModel.onUpdateAvailable.observeEvent(viewLifecycleOwner, ::onUpdateAvailable)
 		viewModel.onExportLog.observeEvent(viewLifecycleOwner) { content ->
 			pendingLogContent = content
-			saveLogLauncher.launch("dropsauce_log_${System.currentTimeMillis()}.txt")
+			saveLogLauncher.launch("yomira_log_${System.currentTimeMillis()}.txt")
 		}
 	}
 

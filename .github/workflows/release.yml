@@ -173,10 +173,10 @@ jobs:
 
         for apk in "${APK_FILES[@]}"; do
           if [ ${#APK_FILES[@]} -eq 1 ]; then
-            target="release/DropSauce-v${{ inputs.version_name }}.apk"
+            target="release/Yomira-v${{ inputs.version_name }}.apk"
           else
             original_apk_name=$(basename "$apk" .apk)
-            target="release/DropSauce-v${{ inputs.version_name }}-${original_apk_name}.apk"
+            target="release/Yomira-v${{ inputs.version_name }}-${original_apk_name}.apk"
           fi
           cp "$apk" "$target"
         done
@@ -189,7 +189,7 @@ jobs:
         NOTES_FILE="release_notes.md"
 
         cat > "$NOTES_FILE" <<'EOF'
-        ## DropSauce v${{ inputs.version_name }}
+        ## Yomira v${{ inputs.version_name }}
 
         ### Installation Instructions
         1. Download and install the apk file first

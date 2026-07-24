@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/app-icon-dark.svg" alt="DropSauce dark mode app icon" width="112" />
+  <img src="assets/app-icon-dark.svg" alt="Yomira dark mode app icon" width="112" />
 </p>
 
-<h1 align="center">DropSauce</h1>
+<h1 align="center">Yomira</h1>
 
 <p align="center">
   A lightweight, modern manga reader for Android with a beautiful Material 3 Expressive design.
@@ -36,18 +36,18 @@
 
 ## About
 
-DropSauce is a free and open-source manga reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
+Yomira is a free and open-source manga reader for Android, built to feel quick, clean, and comfortable to use with a lot of features
 
 ⭐Please give the repo a star if you like the project. It helps more people find it.🌟
 
 ## Screenshots
 
 <p align="center">
-  <img src="assets/main_favorites-preview.jpg" alt="DropSauce favorites screen" width="38%" />
-  <img src="assets/manga_details_page-preview.jpg" alt="DropSauce manga details screen" width="38%" />
-  <img src="assets/reading_ui-preview.jpg" alt="DropSauce reading screen" width="38%" />
-  <img src="assets/extension_page-preview.jpg" alt="DropSauce extensions screen" width="38%" />
-  <img src="assets/settings-preview.jpg" alt="DropSauce settings screen" width="38%" />
+  <img src="assets/main_favorites-preview.jpg" alt="Yomira favorites screen" width="38%" />
+  <img src="assets/manga_details_page-preview.jpg" alt="Yomira manga details screen" width="38%" />
+  <img src="assets/reading_ui-preview.jpg" alt="Yomira reading screen" width="38%" />
+  <img src="assets/extension_page-preview.jpg" alt="Yomira extensions screen" width="38%" />
+  <img src="assets/settings-preview.jpg" alt="Yomira settings screen" width="38%" />
 </p>
 
 <p align="center">
@@ -106,7 +106,7 @@ DropSauce is a free and open-source manga reader for Android, built to feel quic
 ## Install
 
 1. Open the [latest GitHub release](https://github.com/HuzaifaKhalid1311/DropSauce/releases/latest).
-2. Download the newest `DropSauce` APK.
+2. Download the newest `Yomira` APK.
 3. Install it on a compatible Android device.
 4. Add your preferred source or extension repository, then start reading.
 
@@ -114,14 +114,14 @@ Android may ask you to allow installs from your browser or file manager. That is
 
 ## FAQ
 
-### Does DropSauce include manga?
-> No. DropSauce does not include built-in content. Sources are provided through external libraries or repositories added by users.
+### Does Yomira include manga?
+> No. Yomira does not include built-in content. Sources are provided through external libraries or repositories added by users.
 
-### Is DropSauce free?
-> Yes. DropSauce is free and open source under the GPLv3 license.
+### Is Yomira free?
+> Yes. Yomira is free and open source under the GPLv3 license.
 
 ### How do updates work?
-> DropSauce supports in-app updates, and release APKs are also published on GitHub. You can update from inside the app or install the latest APK from the Releases page.
+> Yomira supports in-app updates, and release APKs are also published on GitHub. You can update from inside the app or install the latest APK from the Releases page.
 
 ### Can I contribute?
 > Yes. Pull requests for patches, fixes, and new features are welcome.
@@ -167,7 +167,7 @@ Small fixes are welcome. Clear screenshots or short screen recordings are extra 
 
 ## Credits
 
-DropSauce exists because of the work already done by the open-source Android manga reader community.
+Yomira exists because of the work already done by the open-source Android manga reader community.
 
 Special thanks to the original [Kotatsu](https://github.com/KotatsuApp/Kotatsu) developers and the [Mihon](https://github.com/mihonapp/mihon) developers/community for the ideas, code, source ecosystem, and long-running maintenance work that helped shape projects like this.
 
@@ -195,7 +195,7 @@ B8:4B:C7:C7:0A:5C:B0:BF:EA:9D:EA:D9:E0:5F:00:52:CB:A1:38:4C:AE:F5:97:71:3F:27:52
 
 <div align="left">
 
-All programs from DropSauce™ project are free, open-source programs under the GPL license. You may copy, distribute, and modify the software as long as you keep track of changes/dates in the source files. Any modifications to the software, including code licensed under the GPL (via a compiler), must also be provided under the GPL license.
+All programs from Yomira™ project are free, open-source programs under the GPL license. You may copy, distribute, and modify the software as long as you keep track of changes/dates in the source files. Any modifications to the software, including code licensed under the GPL (via a compiler), must also be provided under the GPL license.
 
 </div>
 

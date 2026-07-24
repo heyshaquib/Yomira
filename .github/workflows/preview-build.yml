@@ -70,7 +70,7 @@ jobs:
           fi
           SHORT_SHA=$(git rev-parse --short HEAD)
           SAFE_REF=$(echo "${GITHUB_REF_NAME}" | tr '/ ' '__')
-          DEST="DropSauce-preview-${SAFE_REF}-${SHORT_SHA}.apk"
+          DEST="Yomira-preview-${SAFE_REF}-${SHORT_SHA}.apk"
           cp "$APK" "$DEST"
 
           SHA256=$(sha256sum "$DEST" | awk '{print $1}')
@@ -83,7 +83,7 @@ jobs:
           # Write release details to the run summary.
           {
             echo "**Preview build of \`${GITHUB_REF_NAME}\`** — non-debuggable, no dev tooling, installs"
-            echo "as a separate app (\`org.haziffe.dropsauce.preview\`, \"DropSauce Preview\")."
+            echo "as a separate app (\`org.haziffe.dropsauce.preview\`, \"Yomira Preview\")."
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"

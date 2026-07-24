@@ -498,7 +498,7 @@
     <string name="chapters_deleted_pattern">%1$s entfernt, %2$s gelöscht</string>
     <string name="unsupported_source">Diese Manga-Quelle wird nicht unterstützt</string>
     <string name="show_pages_thumbs">Seitenvorschau anzeigen</string>
-    <string name="unsupported_backup_message">Bitte wähle eine richtige DropSauce-Backup-Datei aus</string>
+    <string name="unsupported_backup_message">Bitte wähle eine richtige Yomira-Backup-Datei aus</string>
     <string name="show_pages_thumbs_summary">Registerkarte \"Seiten\" auf dem Detailbildschirm aktivieren</string>
     <string name="error_no_data_received">Keine Daten vom Server erhalten</string>
     <string name="last_used">Zuletzt verwendet</string>
@@ -526,6 +526,6 @@
     <string name="pin">Pinnen</string>
     <string name="unpin">Entpinnen</string>
     <string name="source_pinned">Quelle gepinnt</string>
-    <string name="plugin_incompatible">Inkompatibles Plugin oder Interner Fehler. Stelle sicher, dass du die letzte Version von DropSauce und die des Plugins verwendest</string>
+    <string name="plugin_incompatible">Inkompatibles Plugin oder Interner Fehler. Stelle sicher, dass du die letzte Version von Yomira und die des Plugins verwendest</string>
     <string name="reader_navigation_inverted">Steuerung umkehren</string>
 </resources>

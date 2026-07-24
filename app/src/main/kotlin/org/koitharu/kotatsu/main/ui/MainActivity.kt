@@ -432,7 +432,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			setPositiveButton(R.string.save) { _, _ ->
 				lifecycleScope.launch {
 					pendingLogContent = withContext(Dispatchers.Default) { appLogger.readPreviousSessionLog() }
-					saveLogLauncher.launch("dropsauce_log_${System.currentTimeMillis()}.txt")
+					saveLogLauncher.launch("yomira_log_${System.currentTimeMillis()}.txt")
 				}
 			}
 			setNegativeButton(R.string.close) { _, _ -> appLogger.clearPreviousSessionLog() }
