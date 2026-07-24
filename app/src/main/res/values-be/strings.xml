@@ -525,7 +525,7 @@
     <string name="show_pages_thumbs">Паказаць мініяцюры старонак</string>
     <string name="show_pages_thumbs_summary">Уключыце ўкладку «Старонкі» на экране звестак</string>
     <string name="error_no_data_received">Ніякія дадзеныя не былі атрыманы з сервера</string>
-    <string name="unsupported_backup_message">Абярыце правільны файл рэзервовай копіі DropSauce</string>
+    <string name="unsupported_backup_message">Абярыце правільны файл рэзервовай копіі Yomira</string>
     <string name="last_used">Апошні раз выкарыстоўваўся</string>
     <string name="hours_minutes_short">%1$d гз. %2$d хв.</string>
     <string name="minutes_short">%d хв.</string>
@@ -564,7 +564,7 @@
     <string name="sources_pinned">Крыніцы замацаваны</string>
     <string name="crop_pages">Абрэзаць старонкі</string>
     <string name="external_source">Знешні/плагін</string>
-    <string name="plugin_incompatible">Несумяшчальны плягін або ўнутраная памылка. Пераканайцеся, што вы карыстаецеся апошнюю версію плагіна і DropSauce</string>
+    <string name="plugin_incompatible">Несумяшчальны плягін або ўнутраная памылка. Пераканайцеся, што вы карыстаецеся апошнюю версію плагіна і Yomira</string>
     <string name="text_empty_holder_secondary_filtered">Няма мангі, якая адпавядае абраным вамі фільтрам</string>
     <string name="connection_ok">Злучэнне ў парадку</string>
     <string name="invalid_proxy_configuration">Няправільная канфігурацыя проксі</string>
@@ -624,7 +624,7 @@
     <string name="save_manga">Захаваць мангу</string>
     <string name="genre">Жанр</string>
     <string name="landscape">Ландшафтная</string>
-    <string name="plugin_incompatible_with_cause">Памылка плагіна: %s\nПераканайцеся, што вы карыстаецеся апошнюю версію плагіна і DropSauce</string>
+    <string name="plugin_incompatible_with_cause">Памылка плагіна: %s\nПераканайцеся, што вы карыстаецеся апошнюю версію плагіна і Yomira</string>
     <string name="download_added">Загрузка дададзена</string>
     <string name="more_options">Больш опцый</string>
     <string name="destination_directory">Каталог прызначэння</string>
@@ -671,7 +671,7 @@
     <string name="search_everywhere">Пошук паўсюль</string>
     <string name="badges_in_lists">Значкі ў спісах</string>
     <string name="link_to_manga_on_s">Спасылка на мангу на %s</string>
-    <string name="link_to_manga_in_app">Спасылка на мангу ў DropSauce</string>
+    <string name="link_to_manga_in_app">Спасылка на мангу ў Yomira</string>
     <string name="clear_browser_data">Ачысціць дадзеныя браўзэра</string>
     <string name="tags_warnings">Вылучаць небяспечныя жанры</string>
     <string name="tags_warnings_summary">Вылучаць жанры, якія могуць быць непрымальныя для большасці карыстальнікаў</string>
@@ -684,7 +684,7 @@
     <string name="no_write_permission_to_file">Няма правоў на запіс у файл</string>
     <string name="use_default_cover">Выкарыстоўваць вокладку па змаўчанні</string>
     <string name="error_disclaimer_report">Вы можаце адправіць справаздачу аб памылцы распрацоўшчыкам. Гэта дапаможа нам выправіць праблему.</string>
-    <string name="error_disclaimer_app_outdated">Падобна, што Ваша версія DropSauce састарэлая. Калі ласка, усталюйце апошнюю версію, каб атрымаць усе даступныя выпраўленні.</string>
+    <string name="error_disclaimer_app_outdated">Падобна, што Ваша версія Yomira састарэлая. Калі ласка, усталюйце апошнюю версію, каб атрымаць усе даступныя выпраўленні.</string>
     <string name="exclude_nsfw_from_suggestions_summary">Дарослая манга не будзе адлюстроўвацца ў рэкамендацыях. Гэтая опцыя можа не працаваць з некаторымі крыніцамі</string>
     <string name="error_disclaimer_manga">Паспрабуйце адкрыць мангу ў браўзэры, каб пераканацца, што яна даступная ў крыніцы.</string>
     <string name="manga_override_hint">Гэтыя змены будуць уплываць на тое, як манга адлюстроўваецца ў праграме</string>
@@ -719,7 +719,7 @@
     <string name="discord_token_description">Увядзіце свой токен Discord або націсніце %s, каб атрымаць яго з дапамогай браўзера</string>
     <string name="discord_token_hint">Устаўце сюды свой токен Discord</string>
     <string name="discord_rpc_summary">Пакажыце свой статус чытання ў Discord</string>
-    <string name="discord_rpc_description">Чытанне мангі на DropSauce - праграма для чытання мангі</string>
+    <string name="discord_rpc_description">Чытанне мангі на Yomira - праграма для чытання мангі</string>
     <string name="reading_s">Чытанне %s</string>
     <string name="read_on_s">Чытаць далей %s</string>
     <string name="rpc_skip_nsfw_summary">Не выкарыстоўваць RPC для дарослага кантэнту</string>
