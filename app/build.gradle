@@ -20,7 +20,7 @@ android {
 	namespace = 'org.koitharu.kotatsu'
 
 	defaultConfig {
-		applicationId = 'org.haziffe.dropsauce'
+		applicationId = 'com.yomira.reader'
 		minSdk = 26
 		targetSdk = 37
 		versionCode = 63

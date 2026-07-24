@@ -83,7 +83,7 @@ jobs:
           # Write release details to the run summary.
           {
             echo "**Preview build of \`${GITHUB_REF_NAME}\`** — non-debuggable, no dev tooling, installs"
-            echo "as a separate app (\`org.haziffe.dropsauce.preview\`, \"Yomira Preview\")."
+            echo "as a separate app (\`com.yomira.reader.preview\`, \"Yomira Preview\")."
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
