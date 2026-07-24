@@ -30,10 +30,10 @@ import org.koitharu.kotatsu.core.exceptions.CloudFlareProtectedException
 import org.koitharu.kotatsu.core.image.CoilMemoryCacheKey
 import org.koitharu.kotatsu.core.model.FavouriteCategory
 import org.koitharu.kotatsu.core.model.MangaSourceInfo
-import org.koitharu.kotatsu.core.model.appUrl
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isBroken
 import org.koitharu.kotatsu.core.model.isLocal
+import org.koitharu.kotatsu.core.util.ShareHelper
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableManga
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaListFilter
 import org.koitharu.kotatsu.core.model.parcelable.ParcelableMangaPage
@@ -434,7 +434,7 @@ class AppRouter private constructor(
             return
         }
         val context = contextOrNull() ?: return
-        shareLink(manga.publicUrl, manga.title)
+        ShareHelper(context).shareMangaLink(manga)
     }
 
     fun showErrorDialog(error: Throwable, url: String? = null) {
