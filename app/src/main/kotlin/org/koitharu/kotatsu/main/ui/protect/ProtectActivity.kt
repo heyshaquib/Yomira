@@ -19,7 +19,7 @@ import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseActivity
 import org.koitharu.kotatsu.databinding.ActivityProtectBinding
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 
 @AndroidEntryPoint
 class ProtectActivity :
@@ -41,7 +41,7 @@ class ProtectActivity :
 		window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 		setContentView(ActivityProtectBinding.inflate(layoutInflater))
 		viewBinding.composeView.setContent {
-			DropSauceTheme {
+			YomiraTheme {
 				ProtectScreen(
 					isPinMode = isPinMode,
 					onVerifyPin = { pin ->

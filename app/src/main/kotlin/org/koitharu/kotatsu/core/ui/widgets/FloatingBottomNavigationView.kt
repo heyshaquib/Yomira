@@ -55,9 +55,9 @@ class FloatingBottomNavigationView @JvmOverloads constructor(
 	private val composeView: ComposeView = ComposeView(context).apply {
 		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 		setContent {
-			// DropSauceTheme bakes in both the gflex variable font typography and the
+			// YomiraTheme bakes in both the gflex variable font typography and the
 			// activity's color scheme — gives the nav bar the same look as the rest of the app.
-			org.koitharu.kotatsu.settings.compose.DropSauceTheme {
+			org.koitharu.kotatsu.settings.compose.YomiraTheme {
 				val items by composeItemsState.collectAsState()
 				val selectedId by selectedIdState.collectAsState()
 				val labeled by labeledState.collectAsState()

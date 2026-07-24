@@ -41,7 +41,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 
 private const val MIN_PIN_LENGTH = 4
 private const val MAX_PIN_LENGTH = 24
@@ -61,7 +61,7 @@ fun showProtectMethodDialog(
 	dialog.setContentView(
 		ComposeView(activity).apply {
 			setContent {
-				DropSauceTheme {
+				YomiraTheme {
 					ProtectMethodContent(
 						deviceAuthSupported = deviceAuthSupported,
 						onSelectDevice = {

@@ -81,7 +81,7 @@ data class OnboardingActions(
     val onPermissionNotifications: () -> Unit,
     val onPermissionBattery: () -> Unit,
     val onSignInGoogle: () -> Unit,
-    val onRestoreDropSauce: () -> Unit,
+    val onRestoreYomira: () -> Unit,
     val onRestoreTachiyomi: () -> Unit,
     val onOpenGithub: () -> Unit,
     val onOpenDiscord: () -> Unit,
@@ -545,7 +545,7 @@ private fun SyncSlide(isLoading: Boolean, actions: OnboardingActions) {
         )
         ActionCard(
             items = listOf(
-                ActionItem(R.drawable.ic_backup_restore, R.string.onboarding_restore_dropsauce, !isLoading, actions.onRestoreDropSauce),
+                ActionItem(R.drawable.ic_backup_restore, R.string.onboarding_restore_dropsauce, !isLoading, actions.onRestoreYomira),
                 ActionItem(R.drawable.ic_revert, R.string.onboarding_restore_tachiyomi, !isLoading, actions.onRestoreTachiyomi),
             ),
         )

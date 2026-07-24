@@ -131,7 +131,7 @@ private fun bumpedTypography(family: FontFamily): Typography {
  * the user's chosen theme (Dynamic, Monet, AMOLED, etc).
  */
 @Composable
-fun DropSauceTheme(content: @Composable () -> Unit) {
+fun YomiraTheme(content: @Composable () -> Unit) {
 	val ctx = LocalContext.current
 	val isDark = (LocalConfiguration.current.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
 		Configuration.UI_MODE_NIGHT_YES
