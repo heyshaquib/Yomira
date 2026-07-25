@@ -1,11 +1,10 @@
 *.iml
-.gradle
+.gradle/
 /local.properties
 
 
 # IntelliJ / Android Studio
 /.idea/
-/.idea/**
 /.kotlin/
 /.guide/
 /.opencode/
@@ -14,20 +13,57 @@
 # macOS
 .DS_Store
 
+# Windows OS metadata
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS additional metadata
+.AppleDouble
+.LSOverride
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.Trashes
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+*.tmp
+
+# Crash dumps
+hs_err_pid*
+replay_pid*
+
 # Build outputs
-/build
-/captures
+/build/
+/captures/
 CLAUDE.md
-.externalNativeBuild
-.cxx
+.externalNativeBuild/
+.cxx/
+
+# Release artifacts (outside build dirs)
+*.apk
+*.aab
 
 # Logs
 *.log
-*.txt
+yomira_log_*.txt
+dropsauce_matches.txt
 
-# Signing keystores
+# Certificates and Signing
 *.jks
 *.keystore
 *.b64
-/.vscode
+*.p12
+*.pfx
+*.pem
 keystore.properties
+
+# Local Machine Scripts
+build_release_apk.bat
+
+# Other Tools
+/.vscode/
