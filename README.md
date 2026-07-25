@@ -10,14 +10,12 @@
 
 <p align="center">
   <a href="https://github.com/heyshaquib/Yomira/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/heyshaquib/Yomira?style=for-the-badge&logo=github&label=latest"></a>
-  <a href="https://discord.com/channels/1435615296202477581/1435650246163169382/1435651186140119091"><img alt="Discord online users" src="https://img.shields.io/discord/1435615296202477581?style=for-the-badge&logo=discord&logoColor=white&label=discord&color=5865F2"></a>
-  <a href="https://github.com/heyshaquib/Yomira/releases"><img alt="Total downloads" src="https://img.shields.io/github/downloads/heyshaquib/Yomira/total?style=for-the-badge&logo=github&label=downloads"></a>
-  <a href="LICENSE"><img alt="GPLv3 license" src="https://img.shields.io/github/license/heyshaquib/Yomira?style=for-the-badge"></a>
+  <a href="LICENSE"><img alt="GPLv3 license" src="https://img.shields.io/badge/LICENSE-GPL--3.0-F27236?style=for-the-badge"></a>
 </p>
 
 <p align="center">
   <a href="https://developer.android.com/"><img alt="Made for Android" src="https://img.shields.io/badge/Made%20for-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white"></a>
-  <a href="https://kotlinlang.org/"><img alt="Kotlin" src="https://img.shields.io/github/languages/top/heyshaquib/Yomira?style=for-the-badge&logo=kotlin&logoColor=white"></a>
+  <a href="https://kotlinlang.org/"><img alt="Kotlin" src="https://img.shields.io/badge/KOTLIN-100.0%25-0085CA?style=for-the-badge&logo=kotlin&logoColor=white"></a>
   <a href="https://developer.android.com/compose"><img alt="Jetpack Compose" src="https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white"></a>
   <a href="https://m3.material.io/"><img alt="Material 3 Expressive" src="https://img.shields.io/badge/Material%203-Expressive-6750A4?style=for-the-badge&logo=materialdesign&logoColor=white"></a>
 </p>
@@ -25,9 +23,7 @@
 <p align="center">
   <a href="https://github.com/heyshaquib/Yomira/releases/latest"><strong>Download APK</strong></a>
   |
-  <a href="https://drop-sauce.app"><strong>Website</strong></a>
-  |
-  <a href="https://discord.com/channels/1435615296202477581/1435650246163169382/1435651186140119091"><strong>Discord</strong></a>
+  <a href="https://heyshaquib.dev"><strong>Website</strong></a>
   |
   <a href="https://github.com/heyshaquib/Yomira/issues"><strong>Issues</strong></a>
 </p>
@@ -169,7 +165,7 @@ Small fixes are welcome. Clear screenshots or short screen recordings are extra 
 
 Yomira exists because of the work already done by the open-source Android manga reader community.
 
-Special thanks to the original [Kotatsu](https://github.com/KotatsuApp/Kotatsu) developers and the [Mihon](https://github.com/mihonapp/mihon) developers/community for the ideas, code, source ecosystem, and long-running maintenance work that helped shape projects like this.
+Special thanks to [DropSauce](https://github.com/HuzaifaKhalid1311/DropSauce) for design and architectural inspiration, the original [Kotatsu](https://github.com/KotatsuApp/Kotatsu) and [Mihon](https://github.com/mihonapp/mihon) developers for the robust source ecosystem and long-running maintenance work, and lastly, Our Lord And Saviour LLM Agents for making this all possible.
 
 ## Certificate fingerprints
 
@@ -178,13 +174,13 @@ Special thanks to the original [Kotatsu](https://github.com/KotatsuApp/Kotatsu) 
 SHA1:
 
 ```plaintext
-9A:11:C9:FC:90:C6:E4:3F:7B:D4:2B:44:A3:37:D0:85:E6:E3:27:27
+28:B3:37:7B:44:57:9E:B4:91:ED:7C:07:AB:14:B2:60:0E:14:F2:82
 ```
 
 SHA256:
 
 ```plaintext
-B8:4B:C7:C7:0A:5C:B0:BF:EA:9D:EA:D9:E0:5F:00:52:CB:A1:38:4C:AE:F5:97:71:3F:27:52:E4:3F:C9:63:18
+C3:D8:9C:31:72:CF:71:CE:A8:23:EF:47:62:71:C4:C1:5C:B3:A7:BA:4C:A4:C9:6C:63:88:ED:D0:2D:D8:45:EE
 ```
 
 </div>
