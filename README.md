@@ -186,12 +186,7 @@ C3:D8:9C:31:72:CF:71:CE:A8:23:EF:47:62:71:C4:C1:5C:B3:A7:BA:4C:A4:C9:6C:63:88:ED
 </div>
 
 
-## Community & Support
-- **Issues:** Have a bug or a feature request? Please report it on our [Issue Tracker](https://github.com/heyshaquib/Yomira/issues).
-- **Contributing:** Check out our [Contributing Guidelines](CONTRIBUTING.md) for information on how to build the project and submit pull requests.
-- **Changelog:** See what's new in our [Changelog](CHANGELOG.md).
-- **Security:** If you find a security vulnerability, please refer to our [Security Policy](SECURITY.md).
-- **Code of Conduct:** Please adhere to our [Code of Conduct](CODE_OF_CONDUCT.md) in all interactions.
+
 
 ## License
 
