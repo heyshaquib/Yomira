@@ -189,6 +189,14 @@ B8:4B:C7:C7:0A:5C:B0:BF:EA:9D:EA:D9:E0:5F:00:52:CB:A1:38:4C:AE:F5:97:71:3F:27:52
 
 </div>
 
+
+## Community & Support
+- **Issues:** Have a bug or a feature request? Please report it on our [Issue Tracker](https://github.com/heyshaquib/Yomira/issues).
+- **Contributing:** Check out our [Contributing Guidelines](CONTRIBUTING.md) for information on how to build the project and submit pull requests.
+- **Changelog:** See what's new in our [Changelog](CHANGELOG.md).
+- **Security:** If you find a security vulnerability, please refer to our [Security Policy](SECURITY.md).
+- **Code of Conduct:** Please adhere to our [Code of Conduct](CODE_OF_CONDUCT.md) in all interactions.
+
 ## License
 
 [![GNU GPLv3 Image](https://www.gnu.org/graphics/gplv3-127x51.png)](http://www.gnu.org/licenses/gpl-3.0.en.html)
