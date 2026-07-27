@@ -141,7 +141,6 @@ private fun ReaderScreen(
 		ReaderBackground.DEFAULT.name,
 	)
 	var pagesNumbers by rememberBooleanPref(AppSettings.KEY_PAGES_NUMBERS, false)
-	var titleTapToRead by rememberBooleanPref(AppSettings.KEY_TITLE_TAP_TO_READ, false)
 	var pagesPreload by rememberStringPref(AppSettings.KEY_PAGES_PRELOAD, "2")
 
 	val isWebtoonMode = readerMode == ReaderMode.WEBTOON.name
@@ -171,17 +170,6 @@ private fun ReaderScreen(
 
 						shape = pos.shape,
 						enabled = !isWebtoonMode,
-					)
-				}
-				item { pos ->
-					SwitchSettingsItem(
-						title = stringResource(R.string.title_tap_to_read),
-						subtitle = stringResource(R.string.title_tap_to_read_summary),
-						checked = titleTapToRead,
-						onCheckedChange = { titleTapToRead = it },
-						icon = R.drawable.ic_read,
-
-						shape = pos.shape,
 					)
 				}
 			}

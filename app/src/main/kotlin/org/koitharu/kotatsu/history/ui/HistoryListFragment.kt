@@ -75,6 +75,5 @@ class HistoryListFragment : MangaListFragment() {
 	override fun onCreateAdapter() = HistoryListAdapter(
 		this,
 		DynamicItemSizeResolver(resources, viewLifecycleOwner, settings, adjustWidth = false),
-		titleTapToRead = settings.isTitleTapToReadEnabled,
 	)
 }

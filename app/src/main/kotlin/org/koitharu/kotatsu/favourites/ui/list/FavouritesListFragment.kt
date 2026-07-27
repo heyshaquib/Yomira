@@ -39,7 +39,6 @@ class FavouritesListFragment : MangaListFragment(), PopupMenu.OnMenuItemClickLis
 	override fun onCreateAdapter() = MangaListAdapter(
 		listener = this,
 		sizeResolver = DynamicItemSizeResolver(resources, viewLifecycleOwner, settings, adjustWidth = false),
-		titleTapToRead = settings.isTitleTapToReadEnabled,
 	)
 
 	override fun onScrolledToEnd() = viewModel.requestMoreItems()

@@ -14,18 +14,12 @@ import org.koitharu.kotatsu.list.ui.model.MangaDetailedListModel
 
 fun mangaListDetailedItemAD(
 	clickListener: MangaDetailsClickListener,
-	titleClickListener: OnListItemClickListener<MangaListModel>? = null,
 ) = adapterDelegateViewBinding<MangaDetailedListModel, ListModel, ItemMangaListDetailsBinding>(
 	{ inflater, parent -> ItemMangaListDetailsBinding.inflate(inflater, parent, false) },
 ) {
 
 	AdapterDelegateClickListenerAdapter(this, clickListener)
 		.attach(itemView)
-	if (titleClickListener != null) {
-		binding.textViewTitle.attachTitleClickToRead(itemView) { view ->
-			titleClickListener.onItemClick(item, view)
-		}
-	}
 
 	bind { payloads ->
 		binding.textViewTitle.text = item.title

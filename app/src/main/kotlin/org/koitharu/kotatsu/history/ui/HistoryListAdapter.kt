@@ -9,8 +9,7 @@ import org.koitharu.kotatsu.list.ui.size.ItemSizeResolver
 class HistoryListAdapter(
 	listener: MangaListListener,
 	sizeResolver: ItemSizeResolver,
-	titleTapToRead: Boolean = false,
-) : MangaListAdapter(listener, sizeResolver, titleTapToRead), FastScroller.SectionIndexer {
+) : MangaListAdapter(listener, sizeResolver), FastScroller.SectionIndexer {
 
 	override fun getSectionText(context: Context, position: Int): CharSequence? {
 		return findHeader(position)?.getText(context)
