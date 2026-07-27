@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="url_github" translatable="false">https://github.com/heyshaquib/Yomira</string>
-	<string name="url_discord_web" translatable="false">https://discord.gg/PTd2bYgz9m</string>
-	<string name="url_dropsauce_website" translatable="false">https://drop-sauce.app/</string>
-	<string name="url_user_manual" translatable="false">https://drop-sauce.app/guide/</string>
+	<string name="url_yomira_website" translatable="false">https://heyshaquib.dev</string>
+	<string name="url_user_manual" translatable="false">https://heyshaquib.dev</string>
 	<string name="github_updates_repo" translatable="false">heyshaquib/Yomira</string>
 	<string name="shikimori_clientId" translatable="false">Mw6F0tPEOgyV7F9U9Twg50Q8SndMY7hzIOfXg0AX_XU</string>
 	<string name="shikimori_clientSecret" translatable="false">euBMt1GGRSDpVIFQVPxZrO7Kh6X4gWyv0dABuj4B-M8</string>

@@ -97,7 +97,7 @@ class KotatsuMigrationService : CoroutineIntentService() {
 	@SuppressLint("InlinedApi")
 	private fun startForeground(jobContext: IntentJobContext, done: Int, total: Int) {
 		val channel = NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-			.setName(getString(R.string.migrate_from_kotatsu))
+			.setName(getString(R.string.migrate_from_Yomira))
 			.setShowBadge(false)
 			.setVibrationEnabled(false)
 			.setSound(null, null)
@@ -121,7 +121,7 @@ class KotatsuMigrationService : CoroutineIntentService() {
 
 	private fun buildProgressNotification(jobContext: IntentJobContext, done: Int, total: Int) =
 		NotificationCompat.Builder(this, CHANNEL_ID)
-			.setContentTitle(getString(R.string.kotatsu_migration_running))
+			.setContentTitle(getString(R.string.Yomira_migration_running))
 			.setContentText(if (total > 0) getString(R.string.fraction_pattern, done, total) else null)
 			.setPriority(NotificationCompat.PRIORITY_LOW)
 			.setDefaults(0)
@@ -141,19 +141,19 @@ class KotatsuMigrationService : CoroutineIntentService() {
 	private fun notifyResult(startId: Int, summary: MigrationSummary) {
 		if (!checkNotificationPermission(CHANNEL_ID)) return
 		val text = buildString {
-			append(getString(R.string.kotatsu_migration_result, summary.converted, summary.total))
+			append(getString(R.string.Yomira_migration_result, summary.converted, summary.total))
 			if (summary.missingExtensions.isNotEmpty()) {
 				append('\n')
 				append(
 					getString(
-						R.string.kotatsu_migration_missing_extensions,
+						R.string.Yomira_migration_missing_extensions,
 						summary.missingExtensions.joinToString(", "),
 					),
 				)
 			}
 		}
 		val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-			.setContentTitle(getString(R.string.kotatsu_migration_complete))
+			.setContentTitle(getString(R.string.Yomira_migration_complete))
 			.setContentText(text)
 			.setStyle(NotificationCompat.BigTextStyle().bigText(text))
 			.setPriority(NotificationCompat.PRIORITY_DEFAULT)

@@ -93,18 +93,18 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 				val migrationState by migrationManager.state.collectAsState()
 				val migrationSubtitle = when (val s = migrationState) {
 					is MigrationState.Running -> stringResource(
-						R.string.kotatsu_migration_progress,
+						R.string.Yomira_migration_progress,
 						s.done,
 						s.total,
 					)
 
 					is MigrationState.Finished -> stringResource(
-						R.string.kotatsu_migration_result,
+						R.string.Yomira_migration_result,
 						s.summary.converted,
 						s.summary.total,
 					)
 
-					MigrationState.Idle -> stringResource(R.string.migrate_from_kotatsu_summary)
+					MigrationState.Idle -> stringResource(R.string.migrate_from_Yomira_summary)
 				}
 				BackupScreen(
 					onCreateBackup = {
@@ -137,7 +137,7 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 		super.onViewCreated(view, savedInstanceState)
 		migrationManager.onStarted.observeEvent(viewLifecycleOwner) {
-			Toast.makeText(requireContext(), R.string.kotatsu_migration_started, Toast.LENGTH_SHORT).show()
+			Toast.makeText(requireContext(), R.string.Yomira_migration_started, Toast.LENGTH_SHORT).show()
 		}
 		migrationManager.onCompleted.observeEvent(viewLifecycleOwner) { summary ->
 			requireContext().showKotatsuMigrationCompleteDialog(summary)
@@ -146,16 +146,16 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 
 	private fun confirmAndStartKotatsuMigration() {
 		if (migrationManager.isRunning) {
-			Toast.makeText(requireContext(), R.string.kotatsu_migration_running, Toast.LENGTH_SHORT).show()
+			Toast.makeText(requireContext(), R.string.Yomira_migration_running, Toast.LENGTH_SHORT).show()
 			return
 		}
 		buildAlertDialog(requireContext()) {
-			setTitle(R.string.migrate_from_kotatsu)
-			setMessage(R.string.migrate_from_kotatsu_confirm)
+			setTitle(R.string.migrate_from_Yomira)
+			setMessage(R.string.migrate_from_Yomira_confirm)
 			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.migrate_from_kotatsu) { _, _ ->
+			setPositiveButton(R.string.migrate_from_Yomira) { _, _ ->
 				if (KotatsuMigrationService.start(requireContext())) {
-					Toast.makeText(requireContext(), R.string.kotatsu_migration_running, Toast.LENGTH_SHORT).show()
+					Toast.makeText(requireContext(), R.string.Yomira_migration_running, Toast.LENGTH_SHORT).show()
 				}
 			}
 		}.show()
@@ -278,7 +278,7 @@ private fun BackupScreen(
 				}
 				item { pos ->
 					ActionSettingsItem(
-						title = stringResource(R.string.migrate_from_kotatsu),
+						title = stringResource(R.string.migrate_from_Yomira),
 						subtitle = migrationSubtitle,
 						icon = R.drawable.ic_backup_restore,
 

@@ -101,7 +101,7 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
         }
         // A restored Kotatsu-fork (DropSauce) backup auto-migrates in the background; surface it here.
         migrationManager.onStarted.observeEvent(this) {
-            Toast.makeText(this, R.string.kotatsu_migration_started, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.Yomira_migration_started, Toast.LENGTH_SHORT).show()
         }
         migrationManager.onCompleted.observeEvent(this) { summary ->
             showKotatsuMigrationCompleteDialog(summary)
@@ -172,12 +172,9 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
                         onOpenGithub = {
                             openExternalLink(getString(R.string.url_github), getString(R.string.source_code))
                         },
-                        onOpenTelegram = {
-                            openExternalLink(getString(R.string.url_telegram), getString(R.string.telegram))
-                        },
                         onVisitWebsite = {
                             openExternalLink(
-                                getString(R.string.url_dropsauce_website),
+                                getString(R.string.url_yomira_website),
                                 getString(R.string.onboarding_visit_website),
                             )
                         },

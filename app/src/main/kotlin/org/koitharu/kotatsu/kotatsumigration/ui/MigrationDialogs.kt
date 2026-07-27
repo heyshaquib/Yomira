@@ -15,13 +15,13 @@ fun Context.showKotatsuMigrationCompleteDialog(summary: MigrationSummary) {
 		return
 	}
 	buildAlertDialog(this) {
-		setTitle(R.string.kotatsu_migration_complete)
+		setTitle(R.string.Yomira_migration_complete)
 		setMessage(
 			if (summary.missingExtensions.isEmpty()) {
-				getString(R.string.kotatsu_migration_done_all, summary.converted)
+				getString(R.string.Yomira_migration_done_all, summary.converted)
 			} else {
 				getString(
-					R.string.kotatsu_migration_done_pending,
+					R.string.Yomira_migration_done_pending,
 					summary.converted,
 					summary.total,
 					summary.missingExtensions.joinToString("\n• ", prefix = "• "),

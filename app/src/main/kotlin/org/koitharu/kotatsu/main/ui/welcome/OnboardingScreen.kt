@@ -84,7 +84,6 @@ data class OnboardingActions(
     val onRestoreYomira: () -> Unit,
     val onRestoreTachiyomi: () -> Unit,
     val onOpenGithub: () -> Unit,
-    val onOpenTelegram: () -> Unit,
     val onVisitWebsite: () -> Unit,
     val onFinish: () -> Unit,
 )
@@ -545,7 +544,7 @@ private fun SyncSlide(isLoading: Boolean, actions: OnboardingActions) {
         )
         ActionCard(
             items = listOf(
-                ActionItem(R.drawable.ic_backup_restore, R.string.onboarding_restore_dropsauce, !isLoading, actions.onRestoreYomira),
+                ActionItem(R.drawable.ic_backup_restore, R.string.onboarding_restore_Yomira, !isLoading, actions.onRestoreYomira),
                 ActionItem(R.drawable.ic_revert, R.string.onboarding_restore_tachiyomi, !isLoading, actions.onRestoreTachiyomi),
             ),
         )
@@ -568,7 +567,6 @@ private fun FinishSlide(actions: OnboardingActions) {
         ActionCard(
             items = listOf(
                 ActionItem(R.drawable.ic_github, R.string.source_code, true, actions.onOpenGithub),
-                ActionItem(R.drawable.ic_telegram, R.string.onboarding_telegram, true, actions.onOpenTelegram),
                 ActionItem(R.drawable.ic_web, R.string.onboarding_visit_website, true, actions.onVisitWebsite),
             ),
         )
