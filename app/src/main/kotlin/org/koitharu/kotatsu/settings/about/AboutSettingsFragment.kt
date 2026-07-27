@@ -213,15 +213,6 @@ private fun AboutScreen(
 			SettingsGroup(title = "Links") {
 				item { pos ->
 					ActionSettingsItem(
-						title = stringResource(R.string.user_manual),
-						subtitle = stringResource(R.string.url_user_manual),
-						icon = R.drawable.ic_book_page,
-						shape = pos.shape,
-						onClick = { onOpenLink(R.string.url_user_manual, R.string.user_manual) },
-					)
-				}
-				item { pos ->
-					ActionSettingsItem(
 						title = stringResource(R.string.source_code),
 						subtitle = stringResource(R.string.url_github),
 						icon = R.drawable.ic_open_external,
@@ -231,13 +222,14 @@ private fun AboutScreen(
 				}
 				item { pos ->
 					ActionSettingsItem(
-						title = stringResource(R.string.discord),
-						subtitle = stringResource(R.string.url_discord_web),
-						icon = R.drawable.ic_discord,
+						title = stringResource(R.string.telegram),
+						subtitle = stringResource(R.string.url_telegram),
+						icon = R.drawable.ic_telegram,
 						shape = pos.shape,
-						onClick = { onOpenLink(R.string.url_discord_web, R.string.discord) },
+						onClick = { onOpenLink(R.string.url_telegram, R.string.telegram) },
 					)
 				}
+
 			}
 		}
 		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }

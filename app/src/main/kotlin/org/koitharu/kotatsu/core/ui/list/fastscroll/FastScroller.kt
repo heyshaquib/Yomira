@@ -363,6 +363,9 @@ class FastScroller @JvmOverloads constructor(
 		if (recyclerView.id == NO_ID) {
 			recyclerView.id = generateViewId()
 		}
+		if (this.id == NO_ID) {
+			this.id = generateViewId()
+		}
 		this.recyclerView = recyclerView
 
 		if (parent is ViewGroup) {

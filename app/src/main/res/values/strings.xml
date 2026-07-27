@@ -675,7 +675,7 @@
     <string name="onboarding_restore_dropsauce">Restore Kotatsu backup</string>
     <string name="onboarding_restore_tachiyomi">Restore Tachi favorites</string>
     <string name="onboarding_visit_website">Visit website</string>
-    <string name="onboarding_discord">Join Discord</string>
+    <string name="onboarding_telegram">Join Telegram</string>
     <string name="onboarding_default_destination">Using default app storage</string>
     <string name="onboarding_full_black_oled">Full black for OLED</string>
     <string name="backup_date_">Backup date: %s</string>
@@ -1111,4 +1111,6 @@
 	<string name="developer_status_error">Error</string>
 	<string name="developer_status_passed">Passed</string>
 	<string name="developer_status_skipped">Skipped</string>
+	<string name="telegram" translatable="false">Telegram</string>
+	<string name="url_telegram" translatable="false">https://t.me/heyshaquib</string>
 </resources>

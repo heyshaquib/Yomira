@@ -172,8 +172,8 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
                         onOpenGithub = {
                             openExternalLink(getString(R.string.url_github), getString(R.string.source_code))
                         },
-                        onOpenDiscord = {
-                            openExternalLink(getString(R.string.url_discord_web), getString(R.string.discord))
+                        onOpenTelegram = {
+                            openExternalLink(getString(R.string.url_telegram), getString(R.string.telegram))
                         },
                         onVisitWebsite = {
                             openExternalLink(

@@ -311,9 +311,10 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("changelog", R.string.changelog, R.string.changelog_summary, crumbs, AboutSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Links") { crumbs ->
-				addItem("about_help", R.string.user_manual, R.string.url_user_manual, crumbs, AboutSettingsFragment::class.java)
+
 				addItem("about_github", R.string.source_code, R.string.url_github, crumbs, AboutSettingsFragment::class.java)
-				addItem("about_discord", R.string.discord, R.string.url_discord_web, crumbs, AboutSettingsFragment::class.java)
+				addItem("about_telegram", R.string.telegram, R.string.url_telegram, crumbs, AboutSettingsFragment::class.java)
+
 			}
 			group(sectionCrumbs, "Diagnostics") { crumbs ->
 				addItem(

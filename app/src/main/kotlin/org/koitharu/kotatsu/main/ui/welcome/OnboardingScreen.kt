@@ -84,7 +84,7 @@ data class OnboardingActions(
     val onRestoreYomira: () -> Unit,
     val onRestoreTachiyomi: () -> Unit,
     val onOpenGithub: () -> Unit,
-    val onOpenDiscord: () -> Unit,
+    val onOpenTelegram: () -> Unit,
     val onVisitWebsite: () -> Unit,
     val onFinish: () -> Unit,
 )
@@ -568,7 +568,7 @@ private fun FinishSlide(actions: OnboardingActions) {
         ActionCard(
             items = listOf(
                 ActionItem(R.drawable.ic_github, R.string.source_code, true, actions.onOpenGithub),
-                ActionItem(R.drawable.ic_discord, R.string.onboarding_discord, true, actions.onOpenDiscord),
+                ActionItem(R.drawable.ic_telegram, R.string.onboarding_telegram, true, actions.onOpenTelegram),
                 ActionItem(R.drawable.ic_web, R.string.onboarding_visit_website, true, actions.onVisitWebsite),
             ),
         )
