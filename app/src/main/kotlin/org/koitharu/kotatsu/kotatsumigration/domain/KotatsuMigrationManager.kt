@@ -9,7 +9,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Holds the live state of a running Kotatsu→Mihon migration so the Backup & Restore settings row
+ * Holds the live state of a running Yomira→Mihon migration so the Backup & Restore settings row
  * can reflect progress (and disable re-entry while one is in flight). Also emits one-shot
  * [onStarted]/[onCompleted] events so whichever screen is in the foreground (settings, onboarding)
  * can show a "migration started" toast and a completion dialog.

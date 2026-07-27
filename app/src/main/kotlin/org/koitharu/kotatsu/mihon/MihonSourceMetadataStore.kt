@@ -10,7 +10,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 
 /**
- * Kotatsu's Manga model has no fields for Mihon's memo/update strategy/initialized state.
+ * Yomira's Manga model has no fields for Mihon's memo/update strategy/initialized state.
  * Persist them out-of-band so recreating a repository/source does not silently erase extension
  * state that Mihon stores in its manga table.
  */
@@ -57,7 +57,7 @@ internal class MihonSourceMetadataStore(context: Context) {
 
 	/**
 	 * New-API extensions (KeiSource/Iken) store the chapter id in SChapter.memo and throw
-	 * "Refresh Chapter List" in getPageList when it is missing. Kotatsu's chapter model cannot
+	 * "Refresh Chapter List" in getPageList when it is missing. Yomira's chapter model cannot
 	 * carry it, so persist it per (source, chapter url) like the manga sidecar above.
 	 */
 	fun restoreChapterMemo(sourceId: Long, chapterUrl: String): JsonObject? =

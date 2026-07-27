@@ -17,18 +17,18 @@ import org.koitharu.kotatsu.core.util.ext.powerManager
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.withPartialWakeLock
 import org.koitharu.kotatsu.kotatsumigration.domain.KotatsuMigrationManager
-import org.koitharu.kotatsu.kotatsumigration.domain.KotatsuMigrationUseCase
-import org.koitharu.kotatsu.kotatsumigration.domain.KotatsuMigrationUseCase.Outcome
+import org.koitharu.kotatsu.kotatsumigration.domain.YomiraMigrationUseCase
+import org.koitharu.kotatsu.kotatsumigration.domain.YomiraMigrationUseCase.Outcome
 import org.koitharu.kotatsu.kotatsumigration.domain.MigrationSummary
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import javax.inject.Inject
 import androidx.appcompat.R as appcompatR
 
 @AndroidEntryPoint
-class KotatsuMigrationService : CoroutineIntentService() {
+class YomiraMigrationService : CoroutineIntentService() {
 
 	@Inject
-	lateinit var useCase: KotatsuMigrationUseCase
+	lateinit var useCase: YomiraMigrationUseCase
 
 	@Inject
 	lateinit var manager: KotatsuMigrationManager
@@ -45,7 +45,7 @@ class KotatsuMigrationService : CoroutineIntentService() {
 		val legacy = useCase.scan()
 		manager.onStart(legacy.size)
 		if (legacy.isEmpty()) {
-			// Nothing to migrate (e.g. auto-run after restoring DropSauce's own backup) — finish silently.
+			// Nothing to migrate (e.g. auto-run after restoring Yomira's own backup) — finish silently.
 			manager.onFinish(MigrationSummary(total = 0, migrated = 0, pendingExtension = 0, missingExtensions = emptySet()))
 			return
 		}
@@ -83,7 +83,7 @@ class KotatsuMigrationService : CoroutineIntentService() {
 	override fun IntentJobContext.onError(error: Throwable) {
 		manager.reset()
 		if (checkNotificationPermission(CHANNEL_ID)) {
-			val notification = NotificationCompat.Builder(this@KotatsuMigrationService, CHANNEL_ID)
+			val notification = NotificationCompat.Builder(this@YomiraMigrationService, CHANNEL_ID)
 				.setContentTitle(getString(R.string.error_occurred))
 				.setContentText(error.message)
 				.setSmallIcon(R.drawable.general_notification)
@@ -173,7 +173,7 @@ class KotatsuMigrationService : CoroutineIntentService() {
 		fun start(context: Context): Boolean = try {
 			ContextCompat.startForegroundService(
 				context,
-				Intent(context, KotatsuMigrationService::class.java),
+				Intent(context, YomiraMigrationService::class.java),
 			)
 			true
 		} catch (e: Exception) {

@@ -104,7 +104,7 @@ class MihonBackupManager @Inject constructor(
   )
 
   /**
-   * Maps Mihon backup categories onto Kotatsu favourite categories.
+   * Maps Mihon backup categories onto Yomira favourite categories.
    *
    * In a Mihon backup each manga references its categories by their [MihonBackupCategory.order]
    * value (see Mihon's `MangaBackupCreator`), so we key the lookup by order. Categories are reused
@@ -291,7 +291,7 @@ class MihonBackupManager @Inject constructor(
                 }
             }
             // Mihon assigns sourceOrder 0 to the newest chapter (sources list newest-first), whereas
-            // Kotatsu reads chapters in ascending `index` order (oldest first). Reverse the order so
+            // Yomira reads chapters in ascending `index` order (oldest first). Reverse the order so
             // chapter ordering — and therefore reading progress — comes out right.
             val orderedBackupChapters = item.chapters.sortedWith(
                 compareByDescending<MihonBackupChapter> { it.sourceOrder }.thenBy { it.chapterNumber },
@@ -552,10 +552,10 @@ class MihonBackupManager @Inject constructor(
     }
 
   /**
-   * Translates a Mihon tracker `syncId` (see Mihon's `TrackerManager`) into the matching Kotatsu
-   * [org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService] id. The two apps number
+   * Translates a Mihon tracker `syncId` (see Mihon's `TrackerManager`) into the matching Yomira
+   * [org.heyshaquib.Yomira.scrobbling.common.domain.model.ScrobblerService] id. The two apps number
    * their services differently, so copying the id verbatim points entries at the wrong service.
-   * Returns `null` for trackers Kotatsu doesn't support (Bangumi, Komga, MangaUpdates, Kavita…).
+   * Returns `null` for trackers Yomira doesn't support (Bangumi, Komga, MangaUpdates, Kavita…).
    */
   private fun mihonTrackerToScrobblerId(syncId: Int): Int? = when (syncId) {
     1 -> 3 // MyAnimeList -> MAL

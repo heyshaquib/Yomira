@@ -27,7 +27,7 @@ import java.util.EnumSet
  * [MihonExtensionManager] loads extensions on a coroutine. Anyone who calls
  * `create()` during the brief window between app start and "extensions ready"
  * — e.g. the continue-reading widget tapping into the last manga — gets a
- * `MissingMangaSource` and ends up with an [org.koitharu.kotatsu.core.parser.EmptyMangaRepository]
+ * `MissingMangaSource` and ends up with an [org.heyshaquib.Yomira.core.parser.EmptyMangaRepository]
  * that throws "manga source is not supported" on the first suspend call, even
  * though the matching extension *is* installed.
  *

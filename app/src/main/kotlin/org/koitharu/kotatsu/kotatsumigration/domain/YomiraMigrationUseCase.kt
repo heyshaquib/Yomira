@@ -10,12 +10,12 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import javax.inject.Inject
 
 /**
- * Drives migration of restored Kotatsu library entries (built-in sources) onto installed Mihon
+ * Drives migration of restored Yomira library entries (built-in sources) onto installed Mihon
  * extensions. [scan] finds candidates; [migrate] resolves the predefined mapping and re-keys the
- * entry onto the mapped Mihon source **offline** via [KotatsuMangaMigrator] (no per-manga network).
+ * entry onto the mapped Mihon source **offline** via [YomiraMangaMigrator] (no per-manga network).
  * Live chapter lists load lazily when the user opens each manga.
  */
-class KotatsuMigrationUseCase @Inject constructor(
+class YomiraMigrationUseCase @Inject constructor(
 	private val database: MangaDatabase,
 	private val sourceMap: KotatsuSourceMap,
 	private val mihonExtensionManager: MihonExtensionManager,
@@ -66,7 +66,7 @@ class KotatsuMigrationUseCase @Inject constructor(
 		/** Converted, but the matching extension isn't installed yet — recommend installing it. */
 		data class ConvertedPendingExtension(val target: MihonTarget) : Outcome
 
-		/** No predefined Mihon equivalent for this Kotatsu source. */
+		/** No predefined Mihon equivalent for this Yomira source. */
 		data object NoMapping : Outcome
 
 		/** Re-keying threw. */

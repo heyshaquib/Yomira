@@ -425,7 +425,7 @@ class DownloadsSettingsFragment :
 											)
 											if (choice == MigrationChoice.MIGRATE) {
 												migrateUseCase(oldManga = favorite, newManga = localMangaInfo)
-												// After migration, the favorite entry in DropSauce uses localMangaInfo's ID & source
+												// After migration, the favorite entry in Yomira uses localMangaInfo's ID & source
 												currentFavorite = localMangaInfo
 											} else {
 												skipFolder = true

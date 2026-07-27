@@ -38,7 +38,7 @@ import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.kotatsumigration.domain.KotatsuMigrationManager
 import org.koitharu.kotatsu.kotatsumigration.domain.MigrationState
-import org.koitharu.kotatsu.kotatsumigration.ui.KotatsuMigrationService
+import org.koitharu.kotatsu.kotatsumigration.ui.YomiraMigrationService
 import org.koitharu.kotatsu.kotatsumigration.ui.showExtensionInstallPromptDialog
 import org.koitharu.kotatsu.kotatsumigration.ui.showKotatsuMigrationCompleteDialog
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
@@ -154,7 +154,7 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 			setMessage(R.string.migrate_from_Yomira_confirm)
 			setNegativeButton(android.R.string.cancel, null)
 			setPositiveButton(R.string.migrate_from_Yomira) { _, _ ->
-				if (KotatsuMigrationService.start(requireContext())) {
+				if (YomiraMigrationService.start(requireContext())) {
 					Toast.makeText(requireContext(), R.string.Yomira_migration_running, Toast.LENGTH_SHORT).show()
 				}
 			}

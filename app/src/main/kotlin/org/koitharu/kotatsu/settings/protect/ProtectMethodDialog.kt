@@ -49,7 +49,7 @@ private const val MAX_PIN_LENGTH = 24
 /**
  * M3 Expressive dialog shown when the user turns on "Require unlock": pick device/biometric auth
  * (recommended) or set up a custom PIN. PIN setup happens inline in two steps (enter → confirm).
- * Mirrors the style of [org.koitharu.kotatsu.reader.ui.showChapterJumpDialog].
+ * Mirrors the style of [org.heyshaquib.Yomira.reader.ui.showChapterJumpDialog].
  */
 fun showProtectMethodDialog(
 	activity: FragmentActivity,

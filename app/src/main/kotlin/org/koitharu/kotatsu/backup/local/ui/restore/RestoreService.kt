@@ -24,8 +24,8 @@ import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
 import org.koitharu.kotatsu.core.util.ext.toUriOrNull
 import org.koitharu.kotatsu.core.util.ext.withPartialWakeLock
 import org.koitharu.kotatsu.core.util.progress.Progress
-import org.koitharu.kotatsu.kotatsumigration.domain.KotatsuMigrationUseCase
-import org.koitharu.kotatsu.kotatsumigration.ui.KotatsuMigrationService
+import org.koitharu.kotatsu.kotatsumigration.domain.YomiraMigrationUseCase
+import org.koitharu.kotatsu.kotatsumigration.ui.YomiraMigrationService
 import java.io.FileNotFoundException
 import java.util.EnumSet
 import java.util.zip.ZipInputStream
@@ -43,7 +43,7 @@ class RestoreService : BaseBackupRestoreService() {
 	lateinit var repository: LocalBackupRepository
 
 	@Inject
-	lateinit var migrationUseCase: KotatsuMigrationUseCase
+	lateinit var migrationUseCase: YomiraMigrationUseCase
 
 	override suspend fun IntentJobContext.processIntent(intent: Intent) {
 		setForeground(
@@ -75,13 +75,13 @@ class RestoreService : BaseBackupRestoreService() {
 			}
 			progressUpdateJob?.cancelAndJoin()
 			showResultNotification(source, result)
-			// If the restored backup came from another Kotatsu fork (it carries built-in source
+			// If the restored backup came from another Yomira fork (it carries built-in source
 			// names this app doesn't have), auto-convert its library onto the matching Mihon
 			// extensions. Own-app backups only have MIHON_ sources, so the scan is empty and this
 			// no-ops. Manual trigger still lives in Backup & Restore settings.
 			runCatching {
 				if (migrationUseCase.scan().isNotEmpty()) {
-					KotatsuMigrationService.start(applicationContext)
+					YomiraMigrationService.start(applicationContext)
 				}
 			}.onFailure { it.printStackTraceDebug() }
 		}

@@ -50,7 +50,7 @@ class KotoNetworkHelper(
 	override val cookieJar: AndroidCookieJar get() = androidCookieJar
 
 	/**
-	 * Never expose Kotatsu's native base here: it contains the app-wide rate limiter. Current Mihon
+	 * Never expose Yomira's native base here: it contains the app-wide rate limiter. Current Mihon
 	 * deprecates the split client because the regular extension client handles Cloudflare safely.
 	 */
 	override val nonCloudflareClient: OkHttpClient get() = client
@@ -65,7 +65,7 @@ class KotoNetworkHelper(
 		// redirects and retries able to hang indefinitely, which is observably different to extensions.
 		callTimeout(2, java.util.concurrent.TimeUnit.MINUTES)
 		// Mihon uses one AndroidCookieJar as the extension client's authoritative store. Do the
-		// same: merging Kotatsu's separate jar by cookie name can let a stale value override a
+		// same: merging Yomira's separate jar by cookie name can let a stale value override a
 		// WebView-issued cookie (mhub_access/cf_clearance), even though the extension just solved
 		// the challenge. The single system CookieManager also gives extension-created WebViews and
 		// OkHttp the exact shared session semantics extensions are compiled and tested against.
@@ -87,11 +87,11 @@ class KotoNetworkHelper(
 		// OkHttp handles gzip transparently on its own. (The app's GZipInterceptor is skipped below.)
 
 		baseClient.interceptors.forEach { interceptor ->
-			// Skip GZip (handled by OkHttp) and Kotatsu's CloudFlareInterceptor: the latter throws
+			// Skip GZip (handled by OkHttp) and Yomira's CloudFlareInterceptor: the latter throws
 			// CloudFlareBlockedException on any 403/503 block page, which aborts extensions (e.g.
 			// Kagane) that deliberately request a Cloudflare-fronted page and ignore the result.
 			// Cloudflare handling for extensions is done by the dedicated interceptor below instead.
-			// Kotatsu throttles its native parsers globally, while Mihon only rate-limits when an
+			// Yomira throttles its native parsers globally, while Mihon only rate-limits when an
 			// extension opts in with OkHttpClient.Builder.rateLimit(). Never leak the app-wide
 			// limiter into the shared extension client.
 			if (
@@ -109,7 +109,7 @@ class KotoNetworkHelper(
 		addInterceptor(CloudflareInterceptor(context, androidCookieJar, ::defaultUserAgentProvider))
 
 		baseClient.networkInterceptors
-			// Kotatsu clamps cache freshness to one hour for native parsers. Mihon preserves the
+			// Yomira clamps cache freshness to one hour for native parsers. Mihon preserves the
 			// server/extension cache policy, which avoids needless API and cover refetches.
 			.filterNot { it is CacheLimitInterceptor }
 			.forEach(::addNetworkInterceptor)
@@ -177,7 +177,7 @@ class KotoInjektBridge @Inject constructor(
 				addSingletonFactory<Context> { context.applicationContext }
 				addSingletonFactory<NetworkHelper> { networkHelper }
 				// Direct injections must resolve to the same unthrottled base and cookie jar used by
-				// HttpSource.client; returning Kotatsu's native client reintroduces the global limiter.
+				// HttpSource.client; returning Yomira's native client reintroduces the global limiter.
 				addSingletonFactory<OkHttpClient> { networkHelper.client }
 				addSingletonFactory<CookieJar> { networkHelper.client.cookieJar }
 				// AndroidCookieJar wraps Android's system CookieManager.  Extensions that do

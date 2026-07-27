@@ -144,7 +144,7 @@ class MihonMangaRepository(
 		val httpSource = mihonSource as? HttpSource
 		mangasPage.mangas.map { sManga ->
 			// New-API extensions stash the manga id in memo and require it back in getMangaUpdate.
-			// Kotatsu's Manga model can't carry it, so sidecar it now — details restores it.
+			// Yomira's Manga model can't carry it, so sidecar it now — details restores it.
 			sourceMetadata.saveMemo(source.sourceId, sManga.url, sManga)
 			sManga.toManga(
 				source = source,
@@ -158,7 +158,7 @@ class MihonMangaRepository(
 			getDetailsInner(manga)
 		} catch (e: HttpException) {
 			// A 404/410 usually means the stored url is stale — e.g. AsuraScans rotates the random
-			// hash suffix on its slugs, so a url from a (Kotatsu) backup no longer resolves even
+			// hash suffix on its slugs, so a url from a (Yomira) backup no longer resolves even
 			// though the manga is still on the site. Surface it as NotFoundException so
 			// DetailsLoadUseCase's RecoverMangaUseCase re-resolves by title and repairs the url,
 			// keeping the same manga id (favourites/history/bookmarks stay attached).
@@ -212,7 +212,7 @@ class MihonMangaRepository(
 		Log.d(TAG, "rawChapters count: ${rawChapters.size} (unique: ${uniqueChapters.size}), source: ${source.name}")
 
 		// New-API extensions carry the chapter id in SChapter.memo (getPageList throws "Refresh
-		// Chapter List" without it). Kotatsu's chapter model drops it, so sidecar it by chapter url.
+		// Chapter List" without it). Yomira's chapter model drops it, so sidecar it by chapter url.
 		sourceMetadata.saveChapterMemos(
 			source.sourceId,
 			uniqueChapters.filter { it.memo.isNotEmpty() }.associate { it.url to it.memo },
@@ -220,7 +220,7 @@ class MihonMangaRepository(
 
 		val mangaTitle = try { sManga.title } catch (_: UninitializedPropertyAccessException) { "" }
 
-		// Mihon convention: getChapterList() returns chapters newest-first, while Kotatsu's chapter
+		// Mihon convention: getChapterList() returns chapters newest-first, while Yomira's chapter
 		// model and update tracker expect oldest-first (the newest chapter is last). Reverse the
 		// complete source list without sorting it, which preserves the source's canonical order for
 		// missing/duplicate numbers, bonus chapters, and interleaved scanlator variants.
@@ -239,7 +239,7 @@ class MihonMangaRepository(
 
 		// Fallback for missing details fields
 		details.url = sManga.url
-		// Mihon persists these source-owned fields with the manga. Kotatsu's public Manga model
+		// Mihon persists these source-owned fields with the manga. Yomira's public Manga model
 		// cannot represent them, so retain them in the private compatibility sidecar.
 		sourceMetadata.save(source.sourceId, details.url, details)
 
@@ -339,7 +339,7 @@ class MihonMangaRepository(
 
 	/**
 	 * Fetches a cover/thumbnail through the extension's own client + headers — identical to Mihon's
-	 * MangaCoverFetcher and to [org.koitharu.kotatsu.core.image.MihonImageFetcher]. Lets non-Coil
+	 * MangaCoverFetcher and to [org.heyshaquib.Yomira.core.image.MihonImageFetcher]. Lets non-Coil
 	 * paths (e.g. the download worker saving a cover) avoid the app's shared client, which some
 	 * sources 403.
 	 */
@@ -453,7 +453,7 @@ class MihonMangaRepository(
 	}
 
 	// Filters are rendered dynamically from the source's own FilterList (see MihonFilterHost /
-	// MihonFilterSheetFragment), so the structured Kotatsu options stay empty — nothing is flattened
+	// MihonFilterSheetFragment), so the structured Yomira options stay empty — nothing is flattened
 	// into the genres list anymore.
 	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 
@@ -539,7 +539,7 @@ class MihonMangaRepository(
 }
 
 /**
- * Mihon sources return newest-first; DropSauce/Kotatsu consumers use oldest-first.
+ * Mihon sources return newest-first; Yomira/Yomira consumers use oldest-first.
  *
  * Keep this as a reversal rather than a chapter-number sort: source order is authoritative and
  * scanlator variants commonly share the same recognized chapter number.

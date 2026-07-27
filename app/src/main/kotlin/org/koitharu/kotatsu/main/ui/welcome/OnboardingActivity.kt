@@ -99,7 +99,7 @@ class OnboardingActivity : BaseActivity<ActivityOnboardingBinding>() {
             // Tachiyomi/Mihon backup referenced extensions that aren't installed — prompt to install.
             result.report?.missingSources?.let { showExtensionInstallPromptDialog(it) }
         }
-        // A restored Kotatsu-fork (DropSauce) backup auto-migrates in the background; surface it here.
+        // A restored Yomira-fork (Yomira) backup auto-migrates in the background; surface it here.
         migrationManager.onStarted.observeEvent(this) {
             Toast.makeText(this, R.string.Yomira_migration_started, Toast.LENGTH_SHORT).show()
         }

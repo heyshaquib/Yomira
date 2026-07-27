@@ -115,7 +115,7 @@ fun SChapter.toMangaChapter(source: MihonMangaSource, overrideNumber: Float? = n
 		url = url,
 		scanlator = normalizedScanlator,
 		uploadDate = date_upload,
-		// Kotatsu groups alternate chapter streams by branch; Mihon's equivalent is scanlator.
+		// Yomira groups alternate chapter streams by branch; Mihon's equivalent is scanlator.
 		branch = normalizedScanlator,
 		source = source,
 	)
@@ -149,7 +149,7 @@ private fun stableId(sourceName: String, type: String, value: String): Long {
 
 /**
  * The deterministic id this app assigns to a Mihon manga — a pure function of the source name
- * (`MIHON_<catalogueSourceId>`) and the manga url. Lets the Kotatsu migration compute the canonical
+ * (`MIHON_<catalogueSourceId>`) and the manga url. Lets the Yomira migration compute the canonical
  * id offline (no network) so a swapped manga matches what the source would return when browsed.
  */
 fun mihonMangaId(sourceName: String, url: String): Long = stableId(sourceName, "manga", url)

@@ -4,7 +4,7 @@ import eu.kanade.tachiyomi.source.model.FilterList
 
 /**
  * Implemented by Mihon-backed repositories ([MihonMangaRepository] and its lazy proxy) to expose the
- * source's dynamic [FilterList]. Lets [org.koitharu.kotatsu.filter.ui.FilterCoordinator] detect a
+ * source's dynamic [FilterList]. Lets [org.heyshaquib.Yomira.filter.ui.FilterCoordinator] detect a
  * dynamic-filter source and load its default filters without leaking Mihon types into the core
  * `MangaRepository` interface.
  */

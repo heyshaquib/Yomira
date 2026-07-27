@@ -425,20 +425,7 @@ class AppRouter private constructor(
             return
         }
         val context = contextOrNull() ?: return
-        showActionChoiceDialog(
-            context = context,
-            icon = R.drawable.ic_share,
-            title = context.getString(R.string.share),
-            actions = listOf(
-                DialogAction(context.getString(R.string.link_to_manga_in_app)) {
-                    shareLink(manga.appUrl.toString(), manga.title)
-                },
-                DialogAction(context.getString(R.string.link_to_manga_on_s, manga.source.getTitle(context))) {
-                    shareLink(manga.publicUrl, manga.title)
-                },
-            ),
-            dismissLabel = context.getString(android.R.string.cancel),
-        )
+        shareLink(manga.publicUrl, manga.title)
     }
 
     fun showErrorDialog(error: Throwable, url: String? = null) {
@@ -814,7 +801,7 @@ class AppRouter private constructor(
         }
 
         fun shortMangaUrl(mangaId: Long): Uri = Uri.Builder()
-            .scheme("kotatsu")
+            .scheme("yomira")
             .path("manga")
             .appendQueryParameter("id", mangaId.toString())
             .build()

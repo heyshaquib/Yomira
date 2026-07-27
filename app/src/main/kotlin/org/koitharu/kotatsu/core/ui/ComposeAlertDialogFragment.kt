@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.settings.compose.YomiraTheme
  * Base for dialogs that render an M3 Expressive [YomiraTheme] Compose card instead of the legacy
  * [MaterialAlertDialog][com.google.android.material.dialog.MaterialAlertDialogBuilder] chrome. The
  * window is transparent and full-width, so [Content] draws its own rounded surface (typically an
- * [org.koitharu.kotatsu.core.ui.dialog.ExpressiveDialogCard]).
+ * [org.heyshaquib.Yomira.core.ui.dialog.ExpressiveDialogCard]).
  *
  * Stays a [DialogFragment] on purpose: subclasses keep their `by viewModels()`, Hilt injection and
  * `registerForActivityResult` launchers, which a plain dialog could not host.

@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.tracker.data.TrackEntity
 import javax.inject.Inject
 
 /**
- * Re-keys a restored Kotatsu library entry onto its mapped Mihon source **offline** — no network.
+ * Re-keys a restored Yomira library entry onto its mapped Mihon source **offline** — no network.
  *
  * Because a Mihon manga's id is a pure hash of (source name, url) ([mihonMangaId]), the canonical
  * new id is computable without fetching. We store the same manga under that new id with the Mihon
@@ -23,8 +23,8 @@ import javax.inject.Inject
  * delete the old row — its remaining children fall away via `ON DELETE CASCADE`.
  *
  * Manga details (live chapter list) load lazily the first time the user opens the manga, exactly
- * like any other manga. If the Kotatsu url happens to differ from the extension's url scheme, the
- * open-time `getDetails` 404s and the app's existing [org.koitharu.kotatsu.explore.domain.RecoverMangaUseCase]
+ * like any other manga. If the Yomira url happens to differ from the extension's url scheme, the
+ * open-time `getDetails` 404s and the app's existing [org.heyshaquib.Yomira.explore.domain.RecoverMangaUseCase]
  * repairs the url by title-search — keeping the same id, so favourites/history stay attached.
  */
 class KotatsuMangaMigrator @Inject constructor(
@@ -33,7 +33,7 @@ class KotatsuMangaMigrator @Inject constructor(
 ) {
 
 	/**
-	 * @param newSource the target Mihon source: the running [org.koitharu.kotatsu.mihon.model.MihonMangaSource]
+	 * @param newSource the target Mihon source: the running [org.heyshaquib.Yomira.mihon.model.MihonMangaSource]
 	 *  when its extension is installed, otherwise a `MissingMangaSource("MIHON_<id>", title)` so the
 	 *  entry still converts and shows its cached title until the extension is installed.
 	 * @return the new manga id, or null if nothing changed (already migrated).
@@ -44,7 +44,7 @@ class KotatsuMangaMigrator @Inject constructor(
 		if (newId == oldId) {
 			return null
 		}
-		// Re-key cached chapters exactly like the live Mihon adapter. Keeping their Kotatsu ids here
+		// Re-key cached chapters exactly like the live Mihon adapter. Keeping their Yomira ids here
 		// makes the first refresh lose the chapter pointer and recover it from the old percentage.
 		val migratedChapters = oldManga.chapters?.map { it.forMihonSource(newSource) }
 		val chapterIds = oldManga.chapters.orEmpty()

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.kotatsumigration.domain.MigrationSummary
 
 /**
- * Shown after a Kotatsu→Mihon migration finishes (auto-run after restore, or the manual action).
+ * Shown after a Yomira→Mihon migration finishes (auto-run after restore, or the manual action).
  * Tells the user how many entries were converted and, when some need extensions, points them at
  * the "Recommended for your library" section of the extension manager.
  */

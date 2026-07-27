@@ -45,8 +45,8 @@ abstract class MangaDao {
 	abstract suspend fun findAllBySource(source: String): List<MangaWithTags>
 
 	/**
-	 * Restored Kotatsu library entries on built-in (non-Mihon) sources that still carry user data.
-	 * Used by the Kotatsu→Mihon migration to find what needs re-keying. `MIHON_%` sources are the
+	 * Restored Yomira library entries on built-in (non-Mihon) sources that still carry user data.
+	 * Used by the Yomira→Mihon migration to find what needs re-keying. `MIHON_%` sources are the
 	 * app's own external sources; `LOCAL`/`UNKNOWN` are not migratable.
 	 */
 	@Transaction
@@ -85,7 +85,7 @@ abstract class MangaDao {
 
 	/**
 	 * Sources represented by manga in favourites or history. The source key is kept intact so a
-	 * bulk repair can take a stable snapshot of every matching manga, including restored Kotatsu
+	 * bulk repair can take a stable snapshot of every matching manga, including restored Yomira
 	 * sources that have no Mihon counterpart.
 	 */
 	@Query(

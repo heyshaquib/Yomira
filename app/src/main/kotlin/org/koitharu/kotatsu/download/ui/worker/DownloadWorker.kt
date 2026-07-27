@@ -599,7 +599,7 @@ class DownloadWorker @AssistedInject constructor(
 
 		const val MAX_FAILSAFE_ATTEMPTS = 2
 		// Mihon's default parallel-page limit is 5. Keeping extension downloads below that makes
-		// DropSauce observably slower even after removing the accidental global rate limiter.
+		// Yomira observably slower even after removing the accidental global rate limiter.
 		const val MAX_PAGES_PARALLELISM = 5
 		const val DOWNLOAD_ERROR_DELAY = 2_000L
 		const val MAX_RETRY_DELAY = 7_200_000L // 2 hours

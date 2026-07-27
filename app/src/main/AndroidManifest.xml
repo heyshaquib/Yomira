@@ -44,7 +44,7 @@
 	</queries>
 
 	<application
-		android:name="org.koitharu.kotatsu.KotatsuApp"
+		android:name="org.koitharu.kotatsu.YomiraApp"
 		android:allowBackup="true"
 		android:enableOnBackInvokedCallback="@bool/is_predictive_back_enabled"
 		android:hasFragileUserData="true"
@@ -96,18 +96,7 @@
 
 				<data android:scheme="http" />
 				<data android:scheme="https" />
-				<data android:host="kotatsu.app" />
 				<data android:path="/manga" />
-			</intent-filter>
-			<intent-filter>
-				<action android:name="android.intent.action.VIEW" />
-
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-
-				<data android:scheme="kotatsu" />
-				<data android:host="manga" />
-				<data android:host="kotatsu.app" />
 			</intent-filter>
 		</activity>
 		<activity
@@ -311,7 +300,7 @@
 			android:foregroundServiceType="dataSync"
 			android:label="@string/fixing_manga" />
 		<service
-			android:name="org.koitharu.kotatsu.kotatsumigration.ui.KotatsuMigrationService"
+			android:name="org.koitharu.kotatsu.kotatsumigration.ui.YomiraMigrationService"
 			android:exported="false"
 			android:foregroundServiceType="dataSync"
 			android:label="@string/migrate_from_Yomira" />
