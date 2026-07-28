@@ -23,7 +23,7 @@
 <p align="center">
   <a href="https://github.com/heyshaquib/Yomira/releases/latest"><strong>Download APK</strong></a>
   |
-  <a href="https://heyshaquib.dev"><strong>Website</strong></a>
+  <a href="https://yomira-reader.vercel.app"><strong>Website</strong></a>
   |
   <a href="https://github.com/heyshaquib/Yomira/issues"><strong>Issues</strong></a>
 </p>
