@@ -494,7 +494,7 @@ class MihonExtensionLoader @Inject constructor(
 		val extLib = metaData.get(METADATA_EXTENSION_LIB)
 		val value = when (extLib) {
 			is Double -> extLib
-			is Float -> extLib.toDouble()
+			is Float -> extLib.toString().toDouble()
 			is String -> extLib.toDoubleOrNull() ?: 0.0
 			is Int -> extLib.toDouble()
 			else -> 0.0
