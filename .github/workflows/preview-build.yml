@@ -4,7 +4,7 @@ name: Preview Build
 # The preview variant is a non-debuggable build with none of the debug-only tooling
 # (no LeakCanary/StrictMode/debug settings/ACRA-debug) and its own applicationId suffix, so it
 # installs alongside the store build. R8/resource shrinking is intentionally OFF so the APK
-# installs cleanly when sideloaded. It's signed with the debug keystore (no secrets needed).
+# installs cleanly when sideloaded. It uses the release keystore properties from secrets, just like the release build.
 #
 # The APK is published as a workflow artifact (zipped by GitHub) for anyone who prefers the Actions tab.
 # The SHA-256/SHA-1/MD5 hashes are printed to the run summary.
@@ -56,8 +56,27 @@ jobs:
           echo "::error::JitPack artifact for kotatsu-parsers:${PARSERS_VERSION} not available after 10 attempts"
           exit 1
 
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+          else
+            echo "No keystore secret found, creating debug keystore"
+            keytool -genkey -v -keystore release.keystore -alias release \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass password -keypass password \
+              -dname "CN=Debug, OU=Debug, O=Debug, L=Debug, S=Debug, C=US"
+          fi
+
       - name: Build preview APK
-        run: ./gradlew :app:assemblePreview --no-daemon --stacktrace
+        run: |
+          ./gradlew :app:assemblePreview --no-daemon --stacktrace \
+            -PRELEASE_STORE_FILE=../release.keystore \
+            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD || 'password' }}" \
+            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS || 'release' }}" \
+            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD || 'password' }}"
 
       - name: Collect APK and compute checksums
         id: apk
