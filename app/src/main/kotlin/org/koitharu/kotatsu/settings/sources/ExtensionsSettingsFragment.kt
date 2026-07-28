@@ -204,15 +204,7 @@ private fun ExtensionsScreen(
 						onClick = onOpenCatalog,
 					)
 				}
-				item { pos ->
-					ActionSettingsItem(
-						title = stringResource(R.string.manage_stores),
-						subtitle = stringResource(R.string.manage_stores_summary),
-						icon = R.drawable.ic_storefront,
-						shape = pos.shape,
-						onClick = onOpenStores,
-					)
-				}
+
 				item { pos ->
 					ActionSettingsItem(
 						title = stringResource(R.string.migrate_broken_sources),
