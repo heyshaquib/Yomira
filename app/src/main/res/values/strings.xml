@@ -1128,8 +1128,7 @@
 	<string name="developer_status_error">Error</string>
 	<string name="developer_status_passed">Passed</string>
 	<string name="developer_status_skipped">Skipped</string>
-	<string name="telegram" translatable="false">Telegram</string>
-	<string name="url_telegram" translatable="false">https://t.me/heyshaquib</string>
+
     <string name="private_extensions">Sandbox extensions</string>
     <string name="private_extensions_summary">Install extensions inside the app\'s sandboxed storage. No system install permissions needed, updates are automatic, and extensions are invisible to other apps.</string>
     <string name="private_extensions_enabled">Sandbox mode is on</string>
