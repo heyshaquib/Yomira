@@ -490,10 +490,17 @@ class MihonExtensionLoader @Inject constructor(
 			?: versionName.split('.').take(2).joinToString(".").toDoubleOrNull()
 	}
 
-	private fun readLibVersion(metaData: Bundle, versionName: String): Double? =
-		metaData.getDouble(METADATA_EXTENSION_LIB, 0.0)
-			.takeUnless { it == 0.0 }
-			?: parseLibVersion(versionName)
+	private fun readLibVersion(metaData: Bundle, versionName: String): Double? {
+		val extLib = metaData.get(METADATA_EXTENSION_LIB)
+		val value = when (extLib) {
+			is Double -> extLib
+			is Float -> extLib.toDouble()
+			is String -> extLib.toDoubleOrNull() ?: 0.0
+			is Int -> extLib.toDouble()
+			else -> 0.0
+		}
+		return value.takeUnless { it == 0.0 } ?: parseLibVersion(versionName)
+	}
 
 	private fun extractLanguage(packageName: String): String {
 		val parts = packageName.split('.')
