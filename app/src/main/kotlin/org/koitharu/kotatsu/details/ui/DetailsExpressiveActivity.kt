@@ -46,7 +46,7 @@ import javax.inject.Inject
 
 /**
  * Brand-new Material 3 Expressive details screen, rendered entirely with Jetpack Compose. It shares
- * [DetailsViewModel] and the [org.heyshaquib.Yomira.details.ui.pager.ChaptersPagesSheet] bottom sheet
+ * [DetailsViewModel] and the [org.koitharu.kotatsu.details.ui.pager.ChaptersPagesSheet] bottom sheet
  * with the legacy [DetailsActivity], but lays everything out fresh: a frosted cover backdrop, an
  * oversized rounded poster, playful stat pills, and large tactile cards.
  */

@@ -206,8 +206,8 @@ fun FileNotFoundException.parseMessage(resources: Resources): String? {
     /*
     Examples:
     /storage/0000-0000/Android/media/d1f08350-0c25-460b-8f50-008e49de3873.jpg.tmp: open failed: EROFS (Read-only file system)
-     /storage/emulated/0/Android/data/org.heyshaquib.Yomira/cache/pages/fe06e192fa371e55918980f7a24c91ea.jpg: open failed: ENOENT (No such file or directory)
-     /storage/0000-0000/Android/data/org.heyshaquib.Yomira/files/manga/e57d3af4-216e-48b2-8432-1541d58eea1e.tmp (I/O error)
+     /storage/emulated/0/Android/data/org.koitharu.kotatsu/cache/pages/fe06e192fa371e55918980f7a24c91ea.jpg: open failed: ENOENT (No such file or directory)
+     /storage/0000-0000/Android/data/org.koitharu.kotatsu/files/manga/e57d3af4-216e-48b2-8432-1541d58eea1e.tmp (I/O error)
      */
     val groups = FNFE_MESSAGE_REGEX.matchEntire(message ?: return null)?.groupValues ?: return null
     val path = groups.getOrNull(1)

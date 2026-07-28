@@ -54,7 +54,7 @@ import org.koitharu.kotatsu.settings.compose.YomiraTheme
 
 /**
  * Hosts a Compose [content] inside a transparent [ComponentDialog], styled as the app's
- * M3 Expressive popup (mirrors [org.heyshaquib.Yomira.reader.ui.showChapterJumpDialog]).
+ * M3 Expressive popup (mirrors [org.koitharu.kotatsu.reader.ui.showChapterJumpDialog]).
  * [content] receives a `dismiss` callback. Returns the dialog so callers can tweak cancel behavior.
  */
 fun showComposeDialog(

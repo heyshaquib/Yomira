@@ -222,7 +222,7 @@ object MihonFilterMapper {
 	 * Finds the source's sort filter together with its index path, used by the compact sort picker.
 	 * Prefers a real [Filter.Sort]; otherwise falls back to a [Filter.Select] whose name looks like a
 	 * sort ("Sort", "Order by", …). Returns null when there is none (callers then fall back to the
-	 * built-in [org.heyshaquib.Yomira.parsers.model.SortOrder]s).
+	 * built-in [org.koitharu.kotatsu.parsers.model.SortOrder]s).
 	 */
 	fun findSortFilter(filters: FilterList): SortRef? {
 		val list = filters.toList()

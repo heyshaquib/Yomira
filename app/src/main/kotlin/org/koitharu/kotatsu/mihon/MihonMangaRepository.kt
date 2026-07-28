@@ -339,7 +339,7 @@ class MihonMangaRepository(
 
 	/**
 	 * Fetches a cover/thumbnail through the extension's own client + headers — identical to Mihon's
-	 * MangaCoverFetcher and to [org.heyshaquib.Yomira.core.image.MihonImageFetcher]. Lets non-Coil
+	 * MangaCoverFetcher and to [org.koitharu.kotatsu.core.image.MihonImageFetcher]. Lets non-Coil
 	 * paths (e.g. the download worker saving a cover) avoid the app's shared client, which some
 	 * sources 403.
 	 */

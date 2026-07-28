@@ -577,7 +577,7 @@ class MihonBackupManager @Inject constructor(
 
   /**
    * Translates a Mihon tracker `syncId` (see Mihon's `TrackerManager`) into the matching Yomira
-   * [org.heyshaquib.Yomira.scrobbling.common.domain.model.ScrobblerService] id. The two apps number
+   * [org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService] id. The two apps number
    * their services differently, so copying the id verbatim points entries at the wrong service.
    * Returns `null` for trackers Yomira doesn't support (Bangumi, Komga, MangaUpdates, Kavita…).
    */

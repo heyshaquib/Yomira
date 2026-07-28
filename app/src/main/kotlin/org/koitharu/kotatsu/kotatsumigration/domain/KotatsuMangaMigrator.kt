@@ -24,7 +24,7 @@ import javax.inject.Inject
  *
  * Manga details (live chapter list) load lazily the first time the user opens the manga, exactly
  * like any other manga. If the Yomira url happens to differ from the extension's url scheme, the
- * open-time `getDetails` 404s and the app's existing [org.heyshaquib.Yomira.explore.domain.RecoverMangaUseCase]
+ * open-time `getDetails` 404s and the app's existing [org.koitharu.kotatsu.explore.domain.RecoverMangaUseCase]
  * repairs the url by title-search — keeping the same id, so favourites/history stay attached.
  */
 class KotatsuMangaMigrator @Inject constructor(
@@ -33,7 +33,7 @@ class KotatsuMangaMigrator @Inject constructor(
 ) {
 
 	/**
-	 * @param newSource the target Mihon source: the running [org.heyshaquib.Yomira.mihon.model.MihonMangaSource]
+	 * @param newSource the target Mihon source: the running [org.koitharu.kotatsu.mihon.model.MihonMangaSource]
 	 *  when its extension is installed, otherwise a `MissingMangaSource("MIHON_<id>", title)` so the
 	 *  entry still converts and shows its cached title until the extension is installed.
 	 * @return the new manga id, or null if nothing changed (already migrated).
