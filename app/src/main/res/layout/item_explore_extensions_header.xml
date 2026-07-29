@@ -44,9 +44,11 @@
 			app:tabIndicatorFullWidth="false"
 			app:tabIndicatorHeight="3dp"
 			app:tabMode="fixed"
+			app:tabPaddingStart="2dp"
+			app:tabPaddingEnd="2dp"
 			app:tabRippleColor="@null"
 			app:tabSelectedTextColor="?attr/colorPrimary"
-			app:tabTextAppearance="?textAppearanceLabelLarge"
+			app:tabTextAppearance="?textAppearanceLabelMedium"
 			app:tabTextColor="?attr/colorOnSurfaceVariant" />
 
 		<View
