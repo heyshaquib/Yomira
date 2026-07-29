@@ -5,6 +5,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.Closeable
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.prefs.DownloadFormat
 import org.koitharu.kotatsu.core.util.ext.MimeType
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
@@ -67,11 +68,26 @@ sealed class LocalMangaOutput(
 			mutex.withLock {
 				var i = 0
 				val baseName = manga.title.toFileNameSafe()
+				// A novel's chapters are prose, so it downloads into an epub instead of a cbz.
+				val isNovel = manga.source.isNovelSource
 				while (true) {
 					val fileName = if (i == 0) baseName else baseName + "_$i"
 					val dir = File(root, fileName)
 					val zip = File(root, "$fileName.cbz")
+					val epub = File(root, "$fileName.epub")
 					i++
+					if (isNovel) {
+						return when {
+							epub.isFile -> if (canWriteTo(epub, manga)) {
+								LocalNovelEpubOutput(epub, manga)
+							} else {
+								continue
+							}
+
+							onlyIfExists -> null
+							else -> LocalNovelEpubOutput(epub, manga)
+						}
+					}
 					return when {
 						dir.isDirectory -> {
 							if (canWriteTo(dir, manga)) {

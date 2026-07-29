@@ -52,20 +52,21 @@ sealed interface ExtensionCatalogPage {
 
 fun buildExtensionCatalogPages(
 	stores: List<ExtensionStoreRecord>,
-	hasInstalledExtensions: Boolean,
 ): List<ExtensionCatalogPage> {
 	val labels = extensionStoreDisplayLabels(stores)
 	return buildList {
-		if (stores.isNotEmpty() || hasInstalledExtensions) add(ExtensionCatalogPage.Available)
+		add(ExtensionCatalogPage.Available)
 		stores.mapTo(this) { store ->
 			ExtensionCatalogPage.Store(store.id, labels[store.id] ?: store.displayName)
 		}
-		if (isEmpty()) add(ExtensionCatalogPage.Empty)
 	}
 }
 
 internal fun shouldShowCatalogFilters(pages: List<ExtensionCatalogPage>): Boolean =
 	pages.any { it != ExtensionCatalogPage.Empty }
+
+internal fun shouldShowStoreTabDivider(position: Int, page: ExtensionCatalogPage): Boolean =
+	position == 1 && page is ExtensionCatalogPage.Store
 
 internal fun canUseStoreCatalogForUpdates(health: StoreHealth): Boolean =
 	health != StoreHealth.UNAVAILABLE
@@ -244,14 +245,41 @@ fun migrateLegacyExtensionStores(
 fun stableExtensionStoreId(indexUrl: String): String =
 	UUID.nameUUIDFromBytes(normalizeExtensionStoreUrl(indexUrl).lowercase().toByteArray()).toString()
 
+/**
+ * Human label for a store that publishes no `repo.json` — every LNReader plugin index, plus legacy
+ * Mihon repos served straight off a raw file host. Naming these by host + path printed most of the
+ * url back, because the index usually sits several directories deep.
+ */
 fun extensionStoreUrlLabel(indexUrl: String): String = runCatching {
 	val uri = URI(normalizeExtensionStoreUrl(indexUrl))
-	val path = uri.path.orEmpty()
-		.substringBeforeLast('/')
-		.trim('/')
-		.takeIf(String::isNotBlank)
-	uri.host?.let { host -> path?.let { "$host/$it" } ?: host }
+	val host = uri.host ?: return@runCatching null
+	val segments = uri.path.orEmpty().split('/').filter(String::isNotBlank)
+	when {
+		// raw.githubusercontent.com/<owner>/<repo>/… and github.com/<owner>/<repo>/…
+		host.endsWith("githubusercontent.com") || host == "github.com" -> segments.getOrNull(1)
+		host.endsWith("github.io") -> host.substringBefore('.')
+		else -> null
+	}?.takeIf(String::isNotBlank) ?: host
 }.getOrNull() ?: indexUrl
+
+/**
+ * Whether any of [fields] matches [query], ignoring case, spacing and punctuation on both sides —
+ * "manga fire" has to find "MangaFire", and "mangafire" has to find "Manga Fire".
+ *
+ * ponytail: normalise-and-substring, not fuzzy scoring. It fixes the whole class of separator
+ * mismatches; typo tolerance would need ranked results, which this flat list has no place for.
+ */
+fun matchesExtensionQuery(query: String?, vararg fields: String?): Boolean {
+	if (query.isNullOrBlank()) return true
+	val normalizedQuery = query.normalizeForExtensionSearch()
+	if (normalizedQuery.isEmpty()) return true
+	return fields.any { field ->
+		!field.isNullOrEmpty() && field.normalizeForExtensionSearch().contains(normalizedQuery)
+	}
+}
+
+private fun String.normalizeForExtensionSearch(): String =
+	filter(Char::isLetterOrDigit).lowercase()
 
 data class RecommendedExtensionRef(
 	val packageName: String,

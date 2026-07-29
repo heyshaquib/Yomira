@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.local.data
 
+import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.parsers.model.Manga
 import java.io.File
 
@@ -41,7 +42,12 @@ val File.isZipArchive: Boolean
 val File.isEpubFile: Boolean
 	get() = isFile && isEpubExtension(extension)
 
-/** True for local EPUB books: the manga is a single .epub file or its chapters point inside one */
+/**
+ * True for anything the text reader handles: a local EPUB book (the manga is a single .epub file or
+ * its chapters point inside one) or a novel source, whose "pages" are prose fetched over the network
+ * rather than images.
+ */
 val Manga.isEpub: Boolean
-	get() = hasEpubExtension(url.substringBefore('#')) ||
+	get() = source.isNovelSource ||
+		hasEpubExtension(url.substringBefore('#')) ||
 		chapters?.firstOrNull()?.let { hasEpubExtension(it.url.substringBefore('#')) } == true

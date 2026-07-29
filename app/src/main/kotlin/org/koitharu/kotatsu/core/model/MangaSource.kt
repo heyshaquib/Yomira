@@ -12,6 +12,8 @@ import androidx.core.text.inSpans
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageDisplayName
+import org.koitharu.kotatsu.lnreader.LnPluginManager
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonMangaSource
@@ -58,6 +60,9 @@ fun MangaSource(name: String?): MangaSource {
 		}
 		return MihonExtensionManager.getByName(name) ?: MissingMangaSource(name)
 	}
+	if (name.startsWith("LN_")) {
+		return LnPluginManager.getByName(name) ?: MissingMangaSource(name)
+	}
 	return MissingMangaSource(name)
 }
 
@@ -92,6 +97,23 @@ val MangaSource.isBroken: Boolean
 
 val MangaSource.isLocal: Boolean
 	get() = unwrap() == LocalMangaSource
+
+/**
+ * True for text sources, whichever kind: an LNReader JS plugin or a Tsundoku novel extension APK.
+ * Single chokepoint for everything that has to behave differently for prose — the text reader, epub
+ * downloads/export, the Explore novels tab — so the two kinds never drift apart.
+ */
+val MangaSource.isNovelSource: Boolean
+	get() = when (val source = unwrap()) {
+		is LnMangaSource -> true
+		is MihonMangaSource -> source.isNovel
+		// Extension not loaded yet (or uninstalled): fall back to the remembered novel source ids.
+		is MissingMangaSource -> source.name.startsWith("MIHON_") &&
+			source.name.removePrefix("MIHON_").substringBefore(':').toLongOrNull()
+				?.let { MihonExtensionManager.isNovelSourceId(it) } == true
+
+		else -> false
+	}
 
 @get:StringRes
 val ContentType.titleResId
@@ -132,8 +154,14 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 		)
 		repoLabel?.let { append(" • ").append(it) }
 	}
+	// language • version, mirroring the Mihon line above. Novel plugins have no repo signature.
+	is LnMangaSource -> buildString {
+		append(getExternalExtensionLanguageDisplayName(source.plugin.lang))
+		source.plugin.version.takeIf { it.isNotEmpty() }?.let { append(" • ").append(it) }
+	}
+
 	is MissingMangaSource -> {
-		if (source.name.startsWith("MIHON_")) {
+		if (source.name.startsWith("MIHON_") || source.name.startsWith("LN_")) {
 			context.getString(R.string.external_source)
 		} else {
 			null
@@ -146,18 +174,20 @@ fun MangaSource.getSummary(context: Context): String? = when (val source = unwra
 fun MangaSource.getTitle(context: Context): String = when (val source = unwrap()) {
 	LocalMangaSource -> context.getString(R.string.local_storage)
 	is MihonMangaSource -> source.displayName
+	is LnMangaSource -> source.displayName
 	is MissingMangaSource -> source.resolveDisplayName(context)
 	else -> context.getString(R.string.unknown)
 }
 
 fun MangaSource.isExternalSource(): Boolean = when (val source = unwrap()) {
-	is MihonMangaSource -> true
-	is MissingMangaSource -> source.name.startsWith("MIHON_")
+	is MihonMangaSource, is LnMangaSource -> true
+	is MissingMangaSource -> source.name.startsWith("MIHON_") || source.name.startsWith("LN_")
 	else -> false
 }
 
 fun MangaSource.getStoredTitleOrNull(): String? = when (val source = unwrap()) {
 	is MihonMangaSource -> source.displayName
+	is LnMangaSource -> source.displayName
 	is MissingMangaSource -> source.cachedDisplayNameOrNull() ?: source.liveDisplayNameOrNull()
 	LocalMangaSource -> null
 	else -> null
@@ -183,6 +213,9 @@ private fun MissingMangaSource.resolveDisplayName(context: Context): String {
 		} else {
 			context.getString(R.string.missing_extension_source_pattern, context.getString(R.string.unknown))
 		}
+	}
+	if (name.startsWith("LN_")) {
+		return context.getString(R.string.missing_extension_source_pattern, name.removePrefix("LN_"))
 	}
 	return name
 }

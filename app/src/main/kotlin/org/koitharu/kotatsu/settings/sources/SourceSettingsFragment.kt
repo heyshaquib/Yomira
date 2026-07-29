@@ -43,6 +43,10 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.SnackbarErrorObserver
 import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.model.isNovelSource
+import org.koitharu.kotatsu.core.model.unwrap
+import org.koitharu.kotatsu.lnreader.LnPluginSettings
+import org.koitharu.kotatsu.lnreader.model.LnMangaSource
 import org.koitharu.kotatsu.core.nav.AppRouter
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
@@ -97,6 +101,15 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		val isValidSource = repo !is EmptyMangaRepository
 		val mihonSource = (repo as? MihonMangaRepository)?.source
 		val uninstallPkg = mihonSource?.pkgName
+		val novelSource = viewModel.source.unwrap() as? LnMangaSource
+		val novelPluginId = novelSource?.pluginId
+		// Prose either way — an LNReader plugin or a novel extension APK.
+		val isNovelSource = viewModel.source.isNovelSource
+		// Mirrors the Mihon row, which is subtitled with its package name — a plugin's id is its
+		// equivalent identity, and the version is what tells two builds apart.
+		val novelPluginLabel = novelSource?.plugin?.let { plugin ->
+			listOfNotNull(plugin.id, plugin.version.takeIf { it.isNotBlank() }).joinToString(" • ")
+		}
 
 		// Language variants of this logical source (same package + name). >1 => show radio picker.
 		val siblings = viewModel.getSiblingMihonSources()
@@ -138,9 +151,13 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 					initialLang = initialLang,
 					variantProvider = variantProvider,
 					uninstallPkg = uninstallPkg,
+					novelPluginId = novelPluginId,
+					novelPluginLabel = novelPluginLabel,
+					isNovelSource = isNovelSource,
 					onOpenBrowser = { url -> openBrowser(url) },
 					onClearCookies = { url -> confirmClearCookies(url) },
 					onUninstall = { pkg -> uninstallExtension(pkg) },
+					onDeletePlugin = { id -> confirmDeletePlugin(id) },
 					onLanguageSelected = { lang -> viewModel.setActiveLanguage(lang) },
 				)
 			}
@@ -151,6 +168,10 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		super.onViewCreated(view, savedInstanceState)
 		viewModel.onError.observeEvent(viewLifecycleOwner, SnackbarErrorObserver(view, this))
 		viewModel.onActionDone.observeEvent(viewLifecycleOwner, ReversibleActionObserver(view))
+		viewModel.onPluginDeleted.observeEvent(viewLifecycleOwner) {
+			// The source is gone, so this screen has nothing left to show.
+			activity?.onBackPressedDispatcher?.onBackPressed()
+		}
 	}
 
 	override fun onDestroyView() {
@@ -163,9 +184,25 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 	private fun buildVariant(catalogueSource: CatalogueSource?, sourceName: String): SourceVariant {
 		val prefsName = SourceSettings.getStorageName(sourceName)
 		val prefs = requireContext().getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-		val sections = buildMihonSections(catalogueSource, prefsName)
-		val browserUrl = (catalogueSource as? HttpSource)?.baseUrl?.takeIf { it.isNotBlank() }
+		val novelSource = viewModel.source.unwrap() as? LnMangaSource
+		val sections = if (novelSource != null) {
+			buildNovelSections(novelSource)
+		} else {
+			buildMihonSections(catalogueSource, prefsName)
+		}
+		val browserUrl = novelSource?.plugin?.site?.takeIf { it.isNotBlank() }
+			?: (catalogueSource as? HttpSource)?.baseUrl?.takeIf { it.isNotBlank() }
 		return SourceVariant(sections = sections, sourcePrefs = prefs, openBrowserUrl = browserUrl)
+	}
+
+	/**
+	 * A novel plugin declares its settings as data instead of building a PreferenceScreen, so only the
+	 * ones it actually declares get a row — nothing is synthesised.
+	 */
+	private fun buildNovelSections(source: LnMangaSource): List<PreferenceSection> {
+		val preferences = LnPluginSettings.buildPreferences(requireContext(), source.plugin)
+		if (preferences.isEmpty()) return emptyList()
+		return listOf(PreferenceSection(null, preferences))
 	}
 
 	@SuppressLint("RestrictedApi")
@@ -193,9 +230,19 @@ class SourceSettingsFragment : BaseComposeSettingsFragment(0) {
 		}.show()
 	}
 
+	private fun confirmDeletePlugin(pluginId: String) {
+		buildAlertDialog(context ?: return) {
+			setTitle(R.string.uninstall)
+			setMessage(viewModel.source.getTitle(context))
+			setNegativeButton(android.R.string.cancel, null)
+			setPositiveButton(R.string.delete) { _, _ -> viewModel.deleteNovelPlugin(pluginId) }
+		}.show()
+	}
+
 	private fun openBrowser(url: String) {
-		val repo = viewModel.repository as? MihonMangaRepository ?: return
-		router.openBrowser(url = url, source = repo.source, title = repo.source.displayName)
+		val source = viewModel.source
+		// Not gated on MihonMangaRepository any more: novel plugins have a site to open too.
+		router.openBrowser(url = url, source = source, title = source.getTitle(requireContext()))
 	}
 
 	private fun uninstallExtension(packageName: String) {
@@ -267,9 +314,13 @@ private fun SourceSettingsScreen(
 	initialLang: String?,
 	variantProvider: (String?) -> SourceVariant,
 	uninstallPkg: String?,
+	novelPluginId: String?,
+	novelPluginLabel: String?,
+	isNovelSource: Boolean,
 	onOpenBrowser: (String) -> Unit,
 	onClearCookies: (String) -> Unit,
 	onUninstall: (String) -> Unit,
+	onDeletePlugin: (String) -> Unit,
 	onLanguageSelected: (String) -> Unit,
 ) {
 	// The active language drives an in-place reload of the whole screen.
@@ -331,21 +382,25 @@ private fun SourceSettingsScreen(
 			}
 		}
 
-		if (isValidSource || variant.openBrowserUrl != null || uninstallPkg != null) {
+		if (isValidSource || variant.openBrowserUrl != null || uninstallPkg != null || novelPluginId != null) {
 			item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 			item {
 				SettingsGroup(title = stringResource(R.string.source_settings_app)) {
 					if (isValidSource) {
-						item { pos ->
-							var slowdown by rememberSourceBoolean(sourcePrefs, SourceSettings.KEY_SLOWDOWN, false)
-							SwitchSettingsItem(
-								title = stringResource(R.string.download_slowdown),
-								subtitle = stringResource(R.string.download_slowdown_summary),
-								checked = slowdown,
-								onCheckedChange = { slowdown = it },
-								icon = R.drawable.ic_timelapse,
-								shape = pos.shape,
-							)
+						// Slowdown paces page-image downloads, which novels have none of. Asks the source,
+						// not the plugin id: a novel extension APK has no pages either.
+						if (!isNovelSource) {
+							item { pos ->
+								var slowdown by rememberSourceBoolean(sourcePrefs, SourceSettings.KEY_SLOWDOWN, false)
+								SwitchSettingsItem(
+									title = stringResource(R.string.download_slowdown),
+									subtitle = stringResource(R.string.download_slowdown_summary),
+									checked = slowdown,
+									onCheckedChange = { slowdown = it },
+									icon = R.drawable.ic_timelapse,
+									shape = pos.shape,
+								)
+							}
 						}
 						item { pos ->
 							var intercept by rememberSourceBoolean(sourcePrefs, SourceSettings.KEY_INTERCEPT_CLOUDFLARE, false)
@@ -377,6 +432,18 @@ private fun SourceSettingsScreen(
 								icon = R.drawable.ic_open_external,
 								shape = pos.shape,
 								onClick = { onOpenBrowser(browserUrl) },
+							)
+						}
+					}
+					if (novelPluginId != null) {
+						item { pos ->
+							ActionSettingsItem(
+								title = stringResource(R.string.uninstall),
+								subtitle = novelPluginLabel ?: novelPluginId,
+								icon = R.drawable.ic_delete,
+								accentColor = androidx.compose.material3.MaterialTheme.colorScheme.error,
+								shape = pos.shape,
+								onClick = { onDeletePlugin(novelPluginId) },
 							)
 						}
 					}

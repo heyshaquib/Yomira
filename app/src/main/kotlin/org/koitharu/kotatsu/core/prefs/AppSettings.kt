@@ -488,6 +488,19 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			putStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, value.mapToSet { it.toString() })
 		}
 
+	/**
+	 * Ids of installed novel (text) extension sources, remembered from the last extension scan.
+	 * Loading extensions needs a classloader pass, so right after launch a novel already in the
+	 * library would otherwise look like a manga source and open in the image reader.
+	 */
+	var novelSourceIds: Set<Long>
+		get() = prefs.getStringSet(KEY_NOVEL_SOURCE_IDS, emptySet())
+			.orEmpty()
+			.mapNotNullToSet { it.toLongOrNull() }
+		set(value) = prefs.edit {
+			putStringSet(KEY_NOVEL_SOURCE_IDS, value.mapToSet { it.toString() })
+		}
+
 	var isShizukuInstallerEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SHIZUKU_INSTALLER, false)
 		set(value) = prefs.edit {
@@ -595,6 +608,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var mihonHiddenPackages: Set<String>
 		get() = prefs.getStringSet(KEY_MIHON_HIDDEN_PACKAGES, emptySet()).orEmpty()
 		set(value) = prefs.edit { putStringSet(KEY_MIHON_HIDDEN_PACKAGES, value) }
+
+	/** LNReader plugin ids hidden from Explore. Mirrors [mihonHiddenPackages] for novel plugins. */
+	var lnHiddenPlugins: Set<String>
+		get() = prefs.getStringSet(KEY_LN_HIDDEN_PLUGINS, emptySet()).orEmpty()
+		set(value) = prefs.edit { putStringSet(KEY_LN_HIDDEN_PLUGINS, value) }
 
 	fun isMihonPackageHidden(pkgName: String): Boolean = pkgName in mihonHiddenPackages
 
@@ -1169,6 +1187,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
 		const val KEY_MIHON_PER_EXT_ACTIVE_LANG = "mihon_per_ext_active_lang"
 		const val KEY_MIHON_HIDDEN_PACKAGES = "mihon_hidden_packages"
+		const val KEY_LN_HIDDEN_PLUGINS = "ln_hidden_plugins"
 		const val KEY_EXTERNAL_EXTENSIONS_REPO_URL = "external_extensions_repo_url"
 		const val KEY_MIHON_EXTENSION_REPOS = "mihon_extension_repos"
 		const val KEY_MIHON_REPO_INFOS = "mihon_repo_infos"
@@ -1194,6 +1213,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
 		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
+		const val KEY_NOVEL_SOURCE_IDS = "novel_source_ids"
 		const val KEY_SHIZUKU_INSTALLER = "shizuku_installer"
 		const val KEY_PRIVATE_INSTALLER = "private_installer"
 		const val KEY_AUTO_UPDATE_EXTENSIONS = "auto_update_extensions"

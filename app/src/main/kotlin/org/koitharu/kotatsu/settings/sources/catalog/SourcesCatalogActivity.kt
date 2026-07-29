@@ -30,6 +30,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.chip.Chip
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -60,13 +61,16 @@ import org.koitharu.kotatsu.core.util.ext.toLocale
 import org.koitharu.kotatsu.databinding.ActivitySourcesCatalogBinding
 import org.koitharu.kotatsu.extensions.install.ExtensionUpdateWorker
 import org.koitharu.kotatsu.extensions.install.ShizukuExtensionInstaller
+import org.koitharu.kotatsu.lnreader.LnPluginManager
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
 import org.koitharu.kotatsu.list.ui.adapter.ListHeaderClickListener
 import org.koitharu.kotatsu.list.ui.model.ListHeader
 import org.koitharu.kotatsu.main.ui.owners.AppBarOwner
+import org.koitharu.kotatsu.extensions.runtime.getExternalExtensionLanguageLabel
 import org.koitharu.kotatsu.parsers.model.ContentType
 import java.io.File
 import java.io.IOException
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -91,6 +95,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	@Inject
 	lateinit var storeManager: ExtensionStoreManager
+
+	@Inject
+	lateinit var lnPluginManager: LnPluginManager
 
 	@Inject
 	@BaseHttpClient
@@ -196,11 +203,16 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			}
 		})
 		TabLayoutMediator(viewBinding.tabs, viewBinding.pager) { tab, position ->
-			tab.text = when (val page = pagesAdapter.pageAt(position)) {
-				ExtensionCatalogPage.Available -> getString(R.string.available)
-				ExtensionCatalogPage.Empty -> ""
-				is ExtensionCatalogPage.Store -> page.title
-				null -> ""
+			when (val page = pagesAdapter.pageAt(position)) {
+				ExtensionCatalogPage.Available -> tab.text = getString(R.string.installed)
+				ExtensionCatalogPage.Empty -> tab.text = ""
+				is ExtensionCatalogPage.Store -> {
+					tab.text = page.title
+					if (shouldShowStoreTabDivider(position, page)) {
+						tab.view.setBackgroundResource(R.drawable.bg_extension_store_tab_separator)
+					}
+				}
+				null -> tab.text = ""
 			}
 		}.attach()
 		viewBinding.chipsFilter.onChipClickListener = this
@@ -222,7 +234,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			pagesAdapter.submitContent(page.pageId, page.items)
 		}
 		viewModel.hasUpdates.observe(this) { hasUpdates ->
-			invalidateOptionsMenu()
+			// No menu item depends on this. Invalidating here rebuilt the menu whenever a search
+			// filtered the update rows away, which destroyed the expanded SearchView mid-typing.
 			if (hasUpdates) {
 				if (settings.isPrivateInstallEnabled) {
 					lifecycleScope.launch { extensionUpdateScheduler.startNow() }
@@ -270,6 +283,12 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		}
 		viewModel.onShowMessage.observeEvent(this) { msg ->
 			Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+		}
+		viewModel.onExtensionInstalled.observeEvent(this) { sourceName ->
+			val source = MangaSource(sourceName)
+			Snackbar.make(viewBinding.pager, R.string.extension_installed, Snackbar.LENGTH_LONG)
+				.setAction(R.string.action_open) { router.openList(source, null, null) }
+				.show()
 		}
 		combine(
 			viewModel.appliedFilter,
@@ -368,6 +387,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onMenuItemActionExpand(item: MenuItem): Boolean {
 		setSearchTitleExpanded(true)
+		// The title inset that keeps a toolbar title clear of the back button also pushed the search
+		// field 16dp past it, leaving dead space. The field starts right after the button instead.
+		viewBinding.toolbar.contentInsetStartWithNavigation =
+			resources.getDimensionPixelSize(R.dimen.top_bar_navigation_button_margin_start) +
+			resources.getDimensionPixelSize(R.dimen.top_bar_navigation_button_size)
 		val sq = (item.actionView as? SearchView)?.query?.trim()?.toString().orEmpty()
 		viewModel.performSearch(sq)
 		return true
@@ -375,6 +399,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
 		setSearchTitleExpanded(false)
+		viewBinding.toolbar.contentInsetStartWithNavigation =
+			resources.getDimensionPixelSize(R.dimen.top_bar_title_inset_with_navigation)
 		viewModel.performSearch(null)
 		return true
 	}
@@ -393,7 +419,8 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		val chips = ArrayList<ChipModel>(contentTypes.size + 2)
 		if (locales.size > 1) {
 			chips += ChipModel(
-				title = appliedFilter.locale?.toLocale().getDisplayName(this),
+				title = appliedFilter.locale?.let(::getExternalExtensionLanguageLabel)
+					?: (null as Locale?).getDisplayName(this),
 				icon = R.drawable.ic_language,
 				isDropdown = true,
 				data = FilterChip.LOCALE,
@@ -422,7 +449,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		locales.sortWith(compareBy(nullsFirst(LocaleComparator())) { it.second })
 		val menu = PopupMenu(this, anchor)
 		for ((i, lc) in locales.withIndex()) {
-			menu.menu.add(Menu.NONE, Menu.NONE, i, lc.second.getDisplayName(this))
+			// Labelled through the extension helper, not the Locale: a plugin index declares its language
+			// as a name, and an unresolvable one must show as written rather than as "Various languages".
+			menu.menu.add(Menu.NONE, Menu.NONE, i, lc.first?.let(::getExternalExtensionLanguageLabel) ?: lc.second.getDisplayName(this))
 		}
 		menu.setOnMenuItemClickListener {
 			viewModel.setLocale(locales.getOrNull(it.order)?.first)
@@ -518,12 +547,17 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun processInstallQueue() {
-		if (!settings.isPrivateInstallEnabled && !settings.isShizukuInstallerEnabled && !canInstallPackages()) {
+		// A novel plugin is written into our own filesDir, so neither the install-packages permission
+		// nor legacy external storage applies — asking for either would be a prompt for nothing.
+		val isNovelNext = pendingInstallQueue.firstOrNull()?.isNovelPlugin == true
+		if (!isNovelNext && !settings.isPrivateInstallEnabled && !settings.isShizukuInstallerEnabled &&
+			!canInstallPackages()
+		) {
 			requestInstallPackagesPermission()
 			return
 		}
 		val nextRequest = pendingInstallQueue.removeFirstOrNull() ?: return
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+		if (!nextRequest.isNovelPlugin && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
 			storagePermissionRequest.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 			pendingInstallQueue.addFirst(nextRequest)
 		} else {
@@ -532,6 +566,11 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 	}
 
 	private fun downloadAndInstallExtension(requestModel: SourcesCatalogViewModel.InstallRequest) {
+		// A novel plugin is plain javascript we evaluate and store ourselves — no apk, no installer.
+		if (requestModel.isNovelPlugin) {
+			installNovelPlugin(requestModel)
+			return
+		}
 		val uri = Uri.parse(requestModel.url)
 		val downloadId = nextDownloadId++
 		val sourceFileName = uri.lastPathSegment?.takeIf { it.isNotBlank() } ?: "extension.apk"
@@ -561,6 +600,41 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 			}
 		}
 		processInstallQueue()
+	}
+
+	private fun installNovelPlugin(requestModel: SourcesCatalogViewModel.InstallRequest) {
+		Toast.makeText(this, R.string.download_started, Toast.LENGTH_SHORT).show()
+		lifecycleScope.launch {
+			val result = runCatching {
+				val code = withContext(Dispatchers.IO) { downloadText(requestModel.url) }
+				lnPluginManager.install(
+					pluginId = requestModel.packageName,
+					rawCode = code,
+					iconUrl = requestModel.iconUrl.orEmpty(),
+					lang = requestModel.lang.orEmpty(),
+					storeId = requestModel.storeId,
+				)
+			}
+			viewModel.clearExtensionInProgress(requestModel.packageName)
+			if (result.isSuccess) {
+				viewModel.onPrivateExtensionChanged()
+				viewModel.notifyExtensionInstalled(requestModel.packageName)
+				// Plugins update themselves in the background, but with no APK-installer setting turned
+				// on the periodic check may never have been scheduled — the first plugin enables it.
+				extensionUpdateScheduler.schedule()
+			} else {
+				Toast.makeText(this@SourcesCatalogActivity, R.string.extension_download_failed, Toast.LENGTH_LONG).show()
+			}
+		}
+		processInstallQueue()
+	}
+
+	private fun downloadText(url: String): String {
+		val request = Request.Builder().url(url).get().build()
+		return httpClient.newCall(request).execute().use { response ->
+			if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+			response.body.string()
+		}
 	}
 
 	private fun downloadApk(url: String, fileName: String) {
@@ -854,6 +928,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 		if (installSucceeded && packageName != null && activeInstallerStoreId != null && activeInstallerMode != null) {
 			storeManager.setOwner(activeInstallerMode!!, packageName, activeInstallerStoreId!!)
 		}
+		if (installSucceeded && packageName != null) {
+			viewModel.notifyExtensionInstalled(packageName)
+		}
 		removeDownloadedApk(activeInstallerFileName)
 		if (isCurrentInstaller) {
 			activeInstallerPackage = null
@@ -951,5 +1028,9 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	private companion object {
 		const val STALE_APK_AGE_MS = 24L * 60L * 60L * 1000L
+
+		/** Novel plugins are the requests whose download url is raw javascript rather than an apk. */
+		val SourcesCatalogViewModel.InstallRequest.isNovelPlugin: Boolean
+			get() = url.substringBefore('?').endsWith(".js", ignoreCase = true)
 	}
 }
