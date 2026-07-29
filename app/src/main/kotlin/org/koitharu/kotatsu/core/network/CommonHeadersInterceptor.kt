@@ -29,7 +29,7 @@ class CommonHeadersInterceptor @Inject constructor(
 		val repository = if (source != null) {
 			mangaRepositoryFactoryLazy.get().create(source)
 		} else {
-			if (BuildConfig.DEBUG) {
+			if (BuildConfig.DEBUG && !request.url.host.contains("github")) {
 				IllegalArgumentException("Request without source tag: ${request.url}")
 					.printStackTrace()
 			}
