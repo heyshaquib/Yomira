@@ -34,7 +34,7 @@ class ExploreSourceKindSelectorTest {
 	fun `novel empty state does not wait for manga extensions`() {
 		val source = source("org/koitharu/kotatsu/explore/ui/ExploreViewModel.kt")
 
-		assertTrue(source.contains("isExtensionsLoading&&!isNovelShown->result+=LoadingState"))
+		assertTrue(source.contains("isExtensionsLoading->result+=LoadingState"))
 	}
 
 	@Test

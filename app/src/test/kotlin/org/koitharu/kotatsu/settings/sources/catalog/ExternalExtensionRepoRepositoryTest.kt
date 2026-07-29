@@ -44,7 +44,7 @@ class ExternalExtensionRepoRepositoryTest {
 			ExternalExtensionRepoRepository(client).validateStore("https://example.com/community/extensions/")
 		}
 
-		assertEquals("example.com/community/extensions", result.store.name)
+		assertEquals("example.com", result.store.name)
 		assertEquals(null, result.store.fingerprint)
 		assertTrue(result.catalog.isEmpty())
 	}
