@@ -89,16 +89,6 @@ Yomira is a free and open-source manga reader for Android, built to feel quick, 
 
 </details>
 
-## Star History
-
-<a href="https://www.star-history.com/?repos=heyshaquib%2FYomira&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=heyshaquib/Yomira&type=date&theme=dark&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=heyshaquib/Yomira&type=date&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=heyshaquib/Yomira&type=date&legend=top-left&sealed_token=WCXLPn5xBgloSjmN1d0FVz4b_AhpF7pqchA72IfTFnB7loTdSNmldj4dtjRPvy25mzYWw0HbOjwW5-L3IIKZPiwQNn6MXISsmwmCuCXLybr-2c5ByQ_Ycg" />
- </picture>
-</a>
-
 ## Install
 
 1. Open the [latest GitHub release](https://github.com/heyshaquib/Yomira/releases/latest).
