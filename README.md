@@ -142,14 +142,11 @@ app/src/main/
 
 ## Contribute
 
-You can send a Pull Request for your patches, fixes, or new features here.
+We welcome patches, fixes, and new features from the open source community! 
 
-1. Fork the repository.
-2. Create a focused branch for your change.
-3. Build locally with `./gradlew :app:assembleDebug`.
-4. Open a Pull Request with a short explanation of what changed.
+Before you start, please take a moment to read our comprehensive [Contribution Guidelines](CONTRIBUTING.md) to understand our process for reporting bugs, suggesting enhancements, and submitting Pull Requests.
 
-Small fixes are welcome. Clear screenshots or short screen recordings are extra helpful for UI changes.
+Small fixes are always welcome. For major architectural changes or new features, please open an issue to discuss it first.
 
 ## Credits
 
