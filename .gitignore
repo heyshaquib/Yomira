@@ -67,3 +67,6 @@ build_release_apk.bat
 
 # Other Tools
 /.vscode/
+
+# Documentation
+/docs/
