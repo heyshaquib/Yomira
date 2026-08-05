@@ -28,7 +28,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -201,9 +206,12 @@ private fun RootSettingsContent(
 				}
 			}
 		}
+		item { Spacer(Modifier.height(8.dp).fillMaxWidth()) }
 		item { Spacer(Modifier.height(24.dp).fillMaxWidth()) }
 	}
 }
+
+
 
 /**
  * Non-removable banner shown at the top of Settings whenever an app update is available.
