@@ -6,7 +6,6 @@ import android.content.pm.ActivityInfo
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import androidx.annotation.FloatRange
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.collection.ArraySet
@@ -61,6 +60,16 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	private val onboardingInstallIdFile = File(context.noBackupFilesDir, "onboarding_install_id")
 	private val connectivityManager = context.connectivityManager
 	private val mangaListBadgesDefault = ArraySet(context.resources.getStringArray(R.array.values_list_badges))
+
+	init {
+		if (!prefs.getBoolean(KEY_PRELOAD_POLICIES_RESET, false)) {
+			prefs.edit {
+				putString(KEY_PREFETCH_CONTENT, "1")
+				putString(KEY_PAGES_PRELOAD, "1")
+				putBoolean(KEY_PRELOAD_POLICIES_RESET, true)
+			}
+		}
+	}
 	private val onboardingInstallId by lazy {
 		runCatching {
 			onboardingInstallIdFile.parentFile?.mkdirs()
@@ -139,9 +148,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isNavBarPinned: Boolean
 		get() = prefs.getBoolean(KEY_NAV_PINNED, false)
 
-	val isLegacyNavigationBar: Boolean
-		get() = prefs.getBoolean(KEY_NAV_LEGACY, false)
-
 	val isMainFabEnabled: Boolean
 		get() = prefs.getBoolean(KEY_MAIN_FAB, true)
 
@@ -149,8 +155,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getInt(KEY_GRID_SIZE, 100)
 		set(value) = prefs.edit { putInt(KEY_GRID_SIZE, value) }
 
-	// Global UI scale as a percent (85 = smaller, 100 = default, 115 = larger). Applied by
-	// overriding densityDpi in BaseActivity.attachBaseContext, so it scales everything.
+	// Global UI scale as a percent (85 = smaller, 100 = default, 115 = larger). Applied by overriding
+	// densityDpi in BaseActivity.attachBaseContext, so it scales everything. It sits on top of the
+	// automatic per-screen baseline there, so 100 means "the reference look" on every device.
 	var uiScalePercent: Int
 		get() = prefs.getInt(KEY_UI_SCALE, 100)
 		set(value) = prefs.edit { putInt(KEY_UI_SCALE, value) }
@@ -194,9 +201,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var favoritesListMode: ListMode
 		get() = prefs.getEnumValue(KEY_LIST_MODE_FAVORITES, listMode)
 		set(value) = prefs.edit { putEnumValue(KEY_LIST_MODE_FAVORITES, value) }
-
-	val isTagsWarningsEnabled: Boolean
-		get() = prefs.getBoolean(KEY_TAGS_WARNINGS, true)
 
 	var isNsfwContentDisabled: Boolean
 		get() = prefs.getBoolean(KEY_DISABLE_NSFW, false)
@@ -341,14 +345,15 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val trackerFrequencyFactor: Float
 		get() = prefs.getString(KEY_TRACKER_FREQUENCY, null)?.toFloatOrNull() ?: 1f
 
-	val isTrackerNotificationsEnabled: Boolean
-		get() = prefs.getBoolean(KEY_TRACKER_NOTIFICATIONS, true)
-
 	val isTrackerNsfwDisabled: Boolean
 		get() = prefs.getBoolean(KEY_TRACKER_NO_NSFW, false)
 
 	val isFeedSwipeGesturesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_FEED_SWIPE_GESTURES, true)
+
+	/** Mark the Feed tab with a plain dot instead of the exact number of unread updates. */
+	val isFeedCounterAsDot: Boolean
+		get() = prefs.getBoolean(KEY_FEED_COUNTER_DOT, false)
 
 	val trackerDownloadStrategy: TrackerDownloadStrategy
 		get() = prefs.getEnumValue(KEY_TRACKER_DOWNLOAD, TrackerDownloadStrategy.DISABLED)
@@ -360,17 +365,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 		return strategy == TrackerDownloadStrategy.DOWNLOADED
 	}
-
-	var notificationSound: Uri
-		get() = prefs.getString(KEY_NOTIFICATIONS_SOUND, null)?.toUriOrNull()
-			?: Settings.System.DEFAULT_NOTIFICATION_URI
-		set(value) = prefs.edit { putString(KEY_NOTIFICATIONS_SOUND, value.toString()) }
-
-	val notificationVibrate: Boolean
-		get() = prefs.getBoolean(KEY_NOTIFICATIONS_VIBRATE, false)
-
-	val notificationLight: Boolean
-		get() = prefs.getBoolean(KEY_NOTIFICATIONS_LIGHT, true)
 
 	val readerAnimation: ReaderAnimation
 		get() = prefs.getEnumValue(KEY_READER_ANIMATION, ReaderAnimation.DEFAULT)
@@ -573,8 +567,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			if (isBackgroundNetworkRestricted()) {
 				return false
 			}
-			val policy =
-				NetworkPolicy.from(prefs.getString(KEY_PREFETCH_CONTENT, null), NetworkPolicy.NON_METERED)
+			val policy = NetworkPolicy.from(prefs.getString(KEY_PREFETCH_CONTENT, null), NetworkPolicy.ALWAYS)
 			return policy.isNetworkAllowed(connectivityManager)
 		}
 
@@ -750,12 +743,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isReaderBarEnabled: Boolean
 		get() = prefs.getBoolean(KEY_READER_BAR, true)
 
-	val isReaderBarTransparent: Boolean
-		get() = prefs.getBoolean(KEY_READER_BAR_TRANSPARENT, true)
-
-	val isReaderChapterToastEnabled: Boolean
-		get() = prefs.getBoolean(KEY_READER_CHAPTER_TOAST, true)
-
 	val isReaderKeepScreenOn: Boolean
 		get() = prefs.getBoolean(KEY_READER_SCREEN_ON, true)
 
@@ -855,8 +842,8 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	val isRelatedMangaEnabled: Boolean
 		get() = prefs.getBoolean(KEY_RELATED_MANGA, true)
 
-	val isWebtoonZoomEnabled: Boolean
-		get() = prefs.getBoolean(KEY_WEBTOON_ZOOM, true)
+	val isScrobblingProgressSyncEnabled: Boolean
+		get() = prefs.getBoolean(KEY_SCROBBLING_PROGRESS_SYNC, true)
 
 	var isWebtoonGapsEnabled: Boolean
 		get() = prefs.getBoolean(KEY_WEBTOON_GAPS, false)
@@ -891,7 +878,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			}
 			val policy = NetworkPolicy.from(
 				prefs.getString(KEY_PAGES_PRELOAD, null),
-				NetworkPolicy.NON_METERED,
+				NetworkPolicy.ALWAYS,
 			)
 			return policy.isNetworkAllowed(connectivityManager)
 		}
@@ -1030,6 +1017,23 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		}
 	}
 
+	/**
+	 * The UI scale slider used to be the only way to cure the oversized layout on a narrow screen, and
+	 * it now multiplies with the automatic baseline that cures it for everyone — so an old value would
+	 * stack on top of the baseline and render about a third too small. Hand the slider back to its
+	 * default exactly once, on every screen, so what everyone sees after updating is the scaling the
+	 * layouts are actually designed around.
+	 */
+	private fun migrateUiScale() {
+		if (prefs.contains(KEY_UI_SCALE_RESET)) {
+			return
+		}
+		prefs.edit {
+			putBoolean(KEY_UI_SCALE_RESET, true)
+			remove(KEY_UI_SCALE)
+		}
+	}
+
 	private fun migrateBackdropBlur() {
 		val oldKey = "details_backdrop_blur"
 		if (!prefs.contains(oldKey)) return
@@ -1042,6 +1046,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	init {
 		migrateBackdropBlur()
+		migrateUiScale()
 	}
 
 	companion object {
@@ -1079,6 +1084,9 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_UPDATES_FEED_CLEAR = "updates_feed_clear"
 		const val KEY_GRID_SIZE = "grid_size"
 		const val KEY_UI_SCALE = "ui_scale"
+		// Bumped from "ui_scale_migrated": that pass skipped wide screens, so the reset has to run once
+		// more to reach the phones it left alone.
+		const val KEY_UI_SCALE_RESET = "ui_scale_reset_v2"
 		const val KEY_GRID_SIZE_PAGES = "grid_size_pages"
 		const val KEY_LOCAL_STORAGE = "local_storage"
 		const val KEY_READER_DOUBLE_PAGES = "reader_double_pages"
@@ -1094,13 +1102,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_TRACKER_WIFI_ONLY = "tracker_wifi"
 		const val KEY_TRACKER_FREQUENCY = "tracker_freq"
 		const val KEY_TRACK_SOURCES = "track_sources"
-		const val KEY_TRACKER_NOTIFICATIONS = "tracker_notifications"
 		const val KEY_TRACKER_NO_NSFW = "tracker_no_nsfw"
 		const val KEY_FEED_SWIPE_GESTURES = "feed_swipe_gestures"
+		const val KEY_FEED_COUNTER_DOT = "feed_counter_dot"
 		const val KEY_TRACKER_DOWNLOAD = "tracker_download"
-		const val KEY_NOTIFICATIONS_SOUND = "notifications_sound"
-		const val KEY_NOTIFICATIONS_VIBRATE = "notifications_vibrate"
-		const val KEY_NOTIFICATIONS_LIGHT = "notifications_light"
 		const val KEY_READER_ANIMATION = "reader_animation2"
 		const val KEY_READER_CONTROLS = "reader_controls"
 		const val KEY_READER_MODE = "reader_mode"
@@ -1154,8 +1159,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_INCOGNITO_MODE = "incognito"
 		const val KEY_READER_MULTITASK = "reader_multitask"
 		const val KEY_READER_BAR = "reader_bar"
-		const val KEY_READER_BAR_TRANSPARENT = "reader_bar_transparent"
-		const val KEY_READER_CHAPTER_TOAST = "reader_chapter_toast"
 		const val KEY_CHAPTER_JUMP_DIALOG = "chapter_jump_dialog"
 		const val KEY_READER_BACKGROUND = "reader_background"
 		const val KEY_READER_SCREEN_ON = "reader_screen_on"
@@ -1167,7 +1170,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_FAVORITES_ORDER = "fav_order"
 		const val KEY_FAVORITES_PINNED = "fav_pinned_order_"
 		const val KEY_WEBTOON_GAPS = "webtoon_gaps"
-		const val KEY_WEBTOON_ZOOM = "webtoon_zoom"
 		const val KEY_WEBTOON_ZOOM_OUT = "webtoon_zoom_out"
 		const val KEY_WEBTOON_PULL_GESTURE = "webtoon_pull_gesture"
 		const val KEY_PREFETCH_CONTENT = "prefetch_content"
@@ -1186,10 +1188,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_LOCAL_MANGA_DIRS = "local_manga_dirs"
 		const val KEY_DISABLE_NSFW = "no_nsfw"
 		const val KEY_RELATED_MANGA = "related_manga"
+		const val KEY_SCROBBLING_PROGRESS_SYNC = "scrobbling_progress_sync"
 		const val KEY_NAV_MAIN = "nav_main"
 		const val KEY_NAV_LABELS = "nav_labels"
 		const val KEY_NAV_PINNED = "nav_pinned"
-		const val KEY_NAV_LEGACY = "nav_legacy"
 		const val KEY_MAIN_FAB = "main_fab"
 		const val KEY_32BIT_COLOR = "enhanced_colors"
 		const val KEY_SOURCES_ORDER = "sources_sort_order"
@@ -1229,7 +1231,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_AUTO_UPDATE_EXTENSIONS = "auto_update_extensions"
 		const val KEY_EXTENSION_UPDATE_NOTIFICATIONS = "extension_update_notifications"
 		const val KEY_LAST_EXTENSION_UPDATE_NOTIFICATION_TIME = "last_extension_update_notification_time"
-		const val KEY_TAGS_WARNINGS = "tags_warnings"
 		const val KEY_DISCORD_RPC = "discord_rpc"
 		const val KEY_DISCORD_RPC_SKIP_NSFW = "discord_rpc_skip_nsfw"
 		const val KEY_DISCORD_TOKEN = "discord_token"
@@ -1256,7 +1257,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 		// keys for non-persistent preferences
 		const val KEY_APP_VERSION = "app_version"
-		const val KEY_HANDLE_LINKS = "handle_links"
 		const val KEY_CLEAR_MANGA_DATA = "manga_data_clear"
 		const val KEY_WEBVIEW_CLEAR = "webview_clear"
 		const val KEY_BACKUP_PERIODICAL_ENABLED = "backup_periodic"
@@ -1267,6 +1267,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 		// old keys are for migration only
 		private const val KEY_IMAGES_PROXY_OLD = "images_proxy"
+		private const val KEY_PRELOAD_POLICIES_RESET = "preload_policies_reset_v1"
 
 		// values
 		private const val READER_CROP_PAGED = 1

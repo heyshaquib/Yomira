@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -71,6 +72,7 @@ import org.koitharu.kotatsu.filter.ui.tags.TagsCatalogSheet
 import org.koitharu.kotatsu.image.ui.ImageActivity
 import org.koitharu.kotatsu.list.ui.config.ListConfigBottomSheet
 import org.koitharu.kotatsu.list.ui.config.ListConfigSection
+import org.koitharu.kotatsu.list.ui.sort.ListSortSheet
 import org.koitharu.kotatsu.local.ui.ImportDialogFragment
 import org.koitharu.kotatsu.local.ui.info.LocalInfoDialog
 import org.koitharu.kotatsu.main.ui.MainActivity
@@ -308,8 +310,10 @@ class AppRouter private constructor(
         startActivity(extensionsSettingsIntent(contextOrNull() ?: return))
     }
 
-    fun openSourceSettings(source: MangaSource) {
-        startActivity(sourceSettingsIntent(contextOrNull() ?: return, source))
+    fun openSourceSettings(source: MangaSource, scrollToLanguage: Boolean = false) {
+        startActivity(sourceSettingsIntent(contextOrNull() ?: return, source).apply {
+            if (scrollToLanguage) putExtra(KEY_SCROLL_TO_LANGUAGE, true)
+        })
     }
 
     fun openSuggestionsSettings() {
@@ -333,8 +337,19 @@ class AppRouter private constructor(
 
     @CheckResult
     fun openExternalBrowser(url: String, chooserTitle: CharSequence? = null): Boolean {
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.data = url.toUriOrNull() ?: return false
+        val context = contextOrNull() ?: return false
+        val intent = Intent(Intent.ACTION_VIEW, url.toUriOrNull() ?: return false)
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+        val packageManager = context.packageManager
+        val defaultPackage = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            ?.activityInfo?.packageName
+            ?.takeUnless { it == context.packageName }
+        val browserPackage = defaultPackage ?: packageManager
+            .queryIntentActivities(intent, PackageManager.MATCH_ALL)
+            .firstOrNull { it.activityInfo.packageName != context.packageName }
+            ?.activityInfo?.packageName
+            ?: return false
+        intent.setPackage(browserPackage)
         return startActivitySafe(
             if (!chooserTitle.isNullOrEmpty()) {
                 Intent.createChooser(intent, chooserTitle)
@@ -472,6 +487,12 @@ class AppRouter private constructor(
 
     fun showListConfigSheet(section: ListConfigSection) {
         ListConfigBottomSheet().withArgs(1) {
+            putParcelable(KEY_LIST_SECTION, section)
+        }.showDistinct()
+    }
+
+    fun showListSortSheet(section: ListConfigSection) {
+        ListSortSheet().withArgs(1) {
             putParcelable(KEY_LIST_SECTION, section)
         }.showDistinct()
     }
@@ -841,6 +862,7 @@ class AppRouter private constructor(
         const val KEY_SOURCE_CATALOG_EXTERNAL_ONLY = "source_catalog_external_only"
         const val KEY_SOURCE_CATALOG_AUTO_MIGRATE = "source_catalog_auto_migrate"
         const val KEY_SOURCE = "source"
+        const val KEY_SCROLL_TO_LANGUAGE = "scroll_to_language"
         const val KEY_TAB = "tab"
         const val KEY_TITLE = "title"
         const val KEY_URL = "url"

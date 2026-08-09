@@ -21,6 +21,7 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
@@ -91,7 +92,11 @@ class ShikimoriRepository @Inject constructor(
 		storage.clear()
 	}
 
-	override suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
+	/**
+	 * [type] is ignored: Shikimori keeps light novels on a separate `/api/ranobe` endpoint whose ids
+	 * live in a different namespace from `/api/mangas`, so it always returns comics.
+	 */
+	override suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
 		val page = offset / MANGA_PAGE_SIZE
 		val pageOffset = offset % MANGA_PAGE_SIZE
 		val url = BASE_URL.toHttpUrl().newBuilder()
@@ -108,8 +113,12 @@ class ShikimoriRepository @Inject constructor(
 		return if (pageOffset != 0) list.drop(pageOffset) else list
 	}
 
-	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean {
 		val user = cachedUser ?: loadUser()
+		findExistingRate(user.id, scrobblerMangaId)?.let {
+			saveRate(it, mangaId)
+			return true
+		}
 		val payload = JSONObject()
 		payload.put(
 			"user_rate",
@@ -127,6 +136,29 @@ class ShikimoriRepository @Inject constructor(
 		val request = Request.Builder().url(url).post(payload.toRequestBody()).build()
 		val response = okHttp.newCall(request).await().parseJson()
 		saveRate(response, mangaId)
+		return false
+	}
+
+	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
+		val user = cachedUser ?: loadUser()
+		val existing = checkNotNull(findExistingRate(user.id, entity.targetId)) {
+			"Shikimori has no user rate for target ${entity.targetId}"
+		}
+		return saveRate(existing, entity.mangaId)
+	}
+
+	/** `null` when the user has no rate for this manga yet. */
+	private suspend fun findExistingRate(userId: Long, scrobblerMangaId: Long): JSONObject? {
+		val url = BASE_URL.toHttpUrl().newBuilder()
+			.addPathSegment("api")
+			.addPathSegment("v2")
+			.addPathSegment("user_rates")
+			.addQueryParameter("user_id", userId.toString())
+			.addQueryParameter("target_id", scrobblerMangaId.toString())
+			.addQueryParameter("target_type", "Manga")
+			.build()
+		val response = okHttp.newCall(Request.Builder().url(url).get().build()).await().parseJsonArray()
+		return response.optJSONObject(0)
 	}
 
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
@@ -148,7 +180,15 @@ class ShikimoriRepository @Inject constructor(
 		saveRate(response, mangaId)
 	}
 
-	override suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?) {
+	/** [setStartDate] is ignored: a Shikimori user rate has no editable reading date. */
+	override suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	) {
 		val payload = JSONObject()
 		payload.put(
 			"user_rate",
@@ -181,7 +221,7 @@ class ShikimoriRepository @Inject constructor(
 		return ScrobblerMangaInfo(response)
 	}
 
-	private suspend fun saveRate(json: JSONObject, mangaId: Long) {
+	private suspend fun saveRate(json: JSONObject, mangaId: Long): ScrobblingEntity {
 		val entity = ScrobblingEntity(
 			scrobbler = ScrobblerService.SHIKIMORI.id,
 			id = json.getInt("id"),
@@ -193,6 +233,7 @@ class ShikimoriRepository @Inject constructor(
 			rating = (json.getDouble("score").toFloat() / 10f).coerceIn(0f, 1f),
 		)
 		db.getScrobblingDao().upsert(entity)
+		return entity
 	}
 
 	private fun ScrobblerManga(json: JSONObject, sourceTitle: String) = ScrobblerManga(

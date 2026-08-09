@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 
@@ -220,6 +221,7 @@ fun ActionSettingsItem(
 	subtitle: String? = null,
 	@DrawableRes icon: Int? = null,
 	iconColors: CategoryIconColors? = null,
+	tintIcon: Boolean = true,
 	shape: Shape = MaterialTheme.shapes.medium,
 	enabled: Boolean = true,
 	accentColor: androidx.compose.ui.graphics.Color? = null,
@@ -230,6 +232,7 @@ fun ActionSettingsItem(
 		subtitle = subtitle,
 		icon = icon,
 		iconColors = iconColors,
+		tintIcon = tintIcon,
 		shape = shape,
 		enabled = enabled,
 		accentColor = accentColor,
@@ -263,6 +266,13 @@ fun InfoSettingsItem(
 @Composable
 fun PlainInfoSettingsItem(
 	text: String,
+	modifier: Modifier = Modifier,
+	@DrawableRes icon: Int,
+) = PlainInfoSettingsItem(AnnotatedString(text), modifier, icon)
+
+@Composable
+fun PlainInfoSettingsItem(
+	text: AnnotatedString,
 	modifier: Modifier = Modifier,
 	@DrawableRes icon: Int,
 ) {

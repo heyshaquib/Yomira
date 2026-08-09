@@ -36,6 +36,7 @@ import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.TypefaceSpan
 import android.text.style.UpdateAppearance
+import android.text.style.URLSpan
 import android.util.TypedValue
 import android.view.ActionMode
 import android.view.ContextThemeWrapper
@@ -92,6 +93,7 @@ import org.koitharu.kotatsu.bookmarks.domain.epubHighlightUrl
 import eu.kanade.tachiyomi.source.online.HttpSource
 import org.koitharu.kotatsu.core.model.isNovelSource
 import org.koitharu.kotatsu.core.model.unwrap
+import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.network.BaseHttpClient
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.lnreader.model.LnMangaSource
@@ -104,6 +106,8 @@ import org.koitharu.kotatsu.core.util.ext.mangaSourceExtra
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.isNightMode
 import org.koitharu.kotatsu.core.util.ext.observe
+import org.koitharu.kotatsu.core.util.ext.URI_SCHEME_ZIP
+import org.koitharu.kotatsu.local.data.input.EpubParser
 import org.koitharu.kotatsu.databinding.FragmentReaderEpubBinding
 import org.koitharu.kotatsu.databinding.SheetEpubDictionaryBinding
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -990,6 +994,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	}
 
 	private fun installHighlightTapHandler(textView: TextView) {
+		var pressedLink: URLSpan? = null
 		val detector = GestureDetector(textView.context, object : GestureDetector.SimpleOnGestureListener() {
 			override fun onDown(e: MotionEvent): Boolean = true
 
@@ -1000,12 +1005,45 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			}
 		})
 		textView.setOnTouchListener { _, event ->
+			when (event.actionMasked) {
+				MotionEvent.ACTION_DOWN -> {
+					pressedLink = findSpanAt(textView, event, URLSpan::class.java)
+					if (pressedLink != null) {
+						textView.parent?.requestDisallowInterceptTouchEvent(true)
+						return@setOnTouchListener true
+					}
+				}
+				MotionEvent.ACTION_UP -> pressedLink?.let { link ->
+					pressedLink = null
+					textView.parent?.requestDisallowInterceptTouchEvent(false)
+					openLink(textView, link.url)
+					return@setOnTouchListener true
+				}
+				MotionEvent.ACTION_CANCEL -> {
+					pressedLink = null
+					textView.parent?.requestDisallowInterceptTouchEvent(false)
+				}
+			}
 			detector.onTouchEvent(event)
-			false
+			pressedLink != null
 		}
 	}
 
-	private fun findHighlightAt(textView: TextView, event: MotionEvent): HighlightMarker? {
+	private fun openLink(textView: TextView, href: String) {
+		val location = textView.tag as? TextLocation ?: return
+		val current = chapters.getOrNull(location.chapter) ?: return
+		val target = resolveChapterLink(current.url, href, chapters.map { it.url })
+		if (target != null) {
+			goTo(Locator(target, 0), smooth = true)
+		} else {
+			chapterContent?.resolveExternalLink(current.url, href)?.let(router::openExternalBrowser)
+		}
+	}
+
+	private fun findHighlightAt(textView: TextView, event: MotionEvent): HighlightMarker? =
+		findSpanAt(textView, event, HighlightMarker::class.java)
+
+	private fun <T> findSpanAt(textView: TextView, event: MotionEvent, type: Class<T>): T? {
 		val text = textView.text as? Spanned ?: return null
 		if (text.isEmpty()) return null
 		val layout = textView.layout ?: return null
@@ -1014,7 +1052,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		if (x !in 0..layout.width || y !in 0..layout.height) return null
 		val line = layout.getLineForVertical(y)
 		val offset = layout.getOffsetForHorizontal(line, x.toFloat()).coerceIn(0, text.length - 1)
-		return text.getSpans(offset, offset + 1, HighlightMarker::class.java).firstOrNull()
+		return text.getSpans(offset, offset + 1, type).firstOrNull()
 	}
 
 	private fun showRemoveHighlight(bookmarkId: Long) {
@@ -1196,7 +1234,11 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		lastLocator = locator.clamped()
 		if (pagerView != null) {
 			val page = pages.indexOfFirst { it.chapter == lastLocator.chapter && lastLocator.offset in it.start until it.end }
-			if (page >= 0) pagerView?.setCurrentItem(page, smooth && isAnimationEnabled())
+			if (page >= 0) {
+				pagerView?.setCurrentItem(page, smooth && isAnimationEnabled())
+			} else {
+				renderMode(lastLocator)
+			}
 		} else {
 			positionVertical(lastLocator)
 		}
@@ -1558,6 +1600,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 		/** [ByteArray] for an embedded resource, absolute-url [String] for a remote one, or null. */
 		fun imageData(chapterUrl: String, source: String): Any?
+
+		fun resolveExternalLink(chapterUrl: String, href: String): String?
 	}
 
 	private class ZipContentSource(private val archives: Map<File, ZipFile>) : ChapterContent {
@@ -1587,6 +1631,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				archive.getInputStream(entry).use { it.readBytes() }
 			}
 		}
+
+		override fun resolveExternalLink(chapterUrl: String, href: String): String? =
+			href.takeIf { it.startsWith("http://", true) || it.startsWith("https://", true) }
 
 		override fun close() {
 			synchronized(lock) { archives.values.forEach(ZipFile::close) }
@@ -1624,6 +1671,14 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				is MihonMangaSource -> (novelSource.catalogueSource as? HttpSource)
 					?.let { resolveAgainst(it.baseUrl, source) }
 
+				else -> null
+			}
+
+		override fun resolveExternalLink(chapterUrl: String, href: String): String? =
+			when (val novelSource = repository.source.unwrap()) {
+				is LnMangaSource -> novelSource.absoluteUrl(href)
+				is MihonMangaSource -> (novelSource.catalogueSource as? HttpSource)
+					?.let { resolveAgainst(it.baseUrl, href) }
 				else -> null
 			}
 
@@ -1686,3 +1741,33 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		private val EMPTY_CHAPTER_TEXT = SpannedString("\u2014")
 	}
 }
+
+internal fun resolveChapterLink(currentUrl: String, href: String, chapterUrls: List<String>): Int? {
+	if (href.isBlank()) return null
+	if (href.startsWith("#")) return chapterUrls.indexOf(currentUrl).takeIf { it >= 0 }
+	// An epub chapter is addressed as `file+zip:///path/book.epub#OEBPS/ch1.xhtml`. Both halves come
+	// straight off disk, so they may contain spaces or non-ascii that java.net.URI rejects — match on
+	// plain strings, and only within the same archive so a link can't jump into another book.
+	val scheme = currentUrl.substringBefore(':').lowercase()
+	if (scheme == URI_SCHEME_ZIP || scheme == "file") {
+		val archive = currentUrl.substringBeforeLast('#')
+		val currentEntry = normalizeEpubEntry(currentUrl.substringAfterLast('#', ""))
+		val rawTarget = href.substringBefore('#').substringBefore('?')
+		val targetEntries = setOf(
+			EpubParser.resolveHref(currentEntry.substringBeforeLast('/', ""), rawTarget),
+			EpubParser.resolveHref("", rawTarget),
+		)
+		return chapterUrls.indexOfFirst {
+			it.substringBeforeLast('#') == archive &&
+				normalizeEpubEntry(it.substringAfterLast('#', "")) in targetEntries
+		}.takeIf { it >= 0 }
+	}
+	val target = runCatching { URI(currentUrl).resolve(href).normalize().toString().substringBefore('#') }.getOrNull()
+		?: return null
+	return chapterUrls.indexOfFirst { url ->
+		runCatching { URI(url).normalize().toString().substringBefore('#') == target }.getOrDefault(false)
+	}.takeIf { it >= 0 }
+}
+
+private fun normalizeEpubEntry(value: String): String =
+	java.net.URLDecoder.decode(value.trimStart('/'), Charsets.UTF_8).replace('\\', '/')

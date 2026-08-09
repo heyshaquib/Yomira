@@ -3,8 +3,6 @@ package org.koitharu.kotatsu.settings.tracker
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings as SystemSettings
 import android.view.LayoutInflater
@@ -37,15 +35,12 @@ import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.powerManager
-import org.koitharu.kotatsu.settings.NotificationSettingsLegacyFragment
-import org.koitharu.kotatsu.settings.SettingsActivity
 import org.koitharu.kotatsu.settings.compose.ActionSettingsItem
 import org.koitharu.kotatsu.settings.compose.CategoryPalette
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
 import org.koitharu.kotatsu.settings.compose.YomiraTheme
 import org.koitharu.kotatsu.settings.compose.ListSettingsItem
 import org.koitharu.kotatsu.settings.compose.MultiSelectSettingsItem
-import org.koitharu.kotatsu.settings.compose.NavigationSettingsItem
 import org.koitharu.kotatsu.settings.compose.PlainInfoSettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -98,13 +93,6 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 					onTrackCategories = router::showTrackerCategoriesConfigSheet,
 					onDownloadCategoriesChange = viewModel::setNewChaptersDownloadCategories,
 					onNotificationsSettings = ::openNotificationsSettings,
-					onOpenLegacyNotifications = {
-						(activity as? SettingsActivity)?.openFragment(
-							NotificationSettingsLegacyFragment::class.java,
-							null,
-							isFromRoot = false,
-						)
-					},
 					onTrackerDebug = {
 						startActivity(Intent(requireContext(), TrackerDebugActivity::class.java))
 					},
@@ -126,21 +114,8 @@ class TrackerSettingsFragment : BaseComposeSettingsFragment(R.string.check_for_n
 	}
 
 	private fun openNotificationsSettings() {
-		val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			Intent(SystemSettings.ACTION_APP_NOTIFICATION_SETTINGS)
-				.putExtra(SystemSettings.EXTRA_APP_PACKAGE, requireContext().packageName)
-		} else if (!notificationHelper.getAreNotificationsEnabled()) {
-			Intent(SystemSettings.ACTION_APPLICATION_DETAILS_SETTINGS)
-				.setData(Uri.fromParts("package", requireContext().packageName, null))
-		} else {
-			// Fall through to the legacy in-app notification settings screen.
-			(activity as? SettingsActivity)?.openFragment(
-				NotificationSettingsLegacyFragment::class.java,
-				null,
-				isFromRoot = false,
-			)
-			return
-		}
+		val intent = Intent(SystemSettings.ACTION_APP_NOTIFICATION_SETTINGS)
+			.putExtra(SystemSettings.EXTRA_APP_PACKAGE, requireContext().packageName)
 		try {
 			startActivity(intent)
 		} catch (_: ActivityNotFoundException) {
@@ -180,7 +155,6 @@ private fun TrackerScreen(
 	onTrackCategories: () -> Unit,
 	onDownloadCategoriesChange: (Set<Long>) -> Unit,
 	onNotificationsSettings: () -> Unit,
-	onOpenLegacyNotifications: () -> Unit,
 	onTrackerDebug: () -> Unit,
 	onIgnoreDoze: () -> Unit,
 ) {
@@ -193,6 +167,7 @@ private fun TrackerScreen(
 	var trackSources by rememberStringSetPref(AppSettings.KEY_TRACK_SOURCES, setOf(AppSettings.TRACK_FAVOURITES))
 	var trackerNoNsfw by rememberBooleanPref(AppSettings.KEY_TRACKER_NO_NSFW, false)
 	var feedSwipeGestures by rememberBooleanPref(AppSettings.KEY_FEED_SWIPE_GESTURES, true)
+	var feedCounterAsDot by rememberBooleanPref(AppSettings.KEY_FEED_COUNTER_DOT, false)
 
 	val freqValues = remember { ctx.resources.getStringArray(R.array.values_tracker_frequency).toList() }
 	val freqEntries = remember(freqValues) {
@@ -300,16 +275,6 @@ private fun TrackerScreen(
 					)
 				}
 				item { pos ->
-					NavigationSettingsItem(
-						title = stringResource(R.string.notifications),
-						icon = R.drawable.ic_list_detailed,
-
-						shape = pos.shape,
-						enabled = enabled,
-						onClick = onOpenLegacyNotifications,
-					)
-				}
-				item { pos ->
 					SwitchSettingsItem(
 						title = stringResource(R.string.feed_swipe_gestures),
 						subtitle = stringResource(R.string.feed_swipe_gestures_summary),
@@ -318,6 +283,18 @@ private fun TrackerScreen(
 						icon = R.drawable.ic_gesture_horizontal,
 
 						shape = pos.shape,
+					)
+				}
+				item { pos ->
+					SwitchSettingsItem(
+						title = stringResource(R.string.feed_counter_dot),
+						subtitle = stringResource(R.string.feed_counter_dot_summary),
+						checked = feedCounterAsDot,
+						onCheckedChange = { feedCounterAsDot = it },
+						icon = R.drawable.ic_dot_indicator,
+
+						shape = pos.shape,
+						enabled = enabled,
 					)
 				}
 				item { pos ->

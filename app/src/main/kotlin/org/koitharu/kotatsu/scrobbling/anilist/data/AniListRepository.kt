@@ -22,9 +22,11 @@ import org.koitharu.kotatsu.scrobbling.common.data.ScrobblerStorage
 import org.koitharu.kotatsu.scrobbling.common.data.ScrobblingEntity
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerManga
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaInfo
+import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerMangaType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerService
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerType
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblerUser
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
@@ -114,13 +116,15 @@ class AniListRepository @Inject constructor(
 		storage.clear()
 	}
 
-	override suspend fun findManga(query: String, offset: Int): List<ScrobblerManga> {
+	override suspend fun findManga(query: String, offset: Int, type: ScrobblerMangaType): List<ScrobblerManga> {
 		val page = (offset / MANGA_PAGE_SIZE.toFloat()).toIntUp() + 1
+		// AniList files prose as the NOVEL format under the MANGA type
+		val formatFilter = if (type.isNovel) "format: NOVEL" else "format_not: NOVEL"
 		val response = doRequest(
 			REQUEST_QUERY,
 			"""
 			Page(page: $page, perPage: ${MANGA_PAGE_SIZE}) {
-				media(type: MANGA, sort: SEARCH_MATCH, search: ${JSONObject.quote(query)}) {
+				media(type: MANGA, $formatFilter, sort: SEARCH_MATCH, search: ${JSONObject.quote(query)}) {
 					id
 					title {
 						userPreferred
@@ -138,7 +142,28 @@ class AniListRepository @Inject constructor(
 		return data.mapJSON { ScrobblerManga(it, query) }
 	}
 
-	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long) {
+	override suspend fun createRate(mangaId: Long, scrobblerMangaId: Long): Boolean {
+		// A create defaults the entry to CURRENT, so an entry already on the list is adopted first.
+		// mediaListEntry is simply null when the authorised user has not listed this media.
+		val existing = doRequest(
+			REQUEST_QUERY,
+			"""
+				Media(id: $scrobblerMangaId) {
+					mediaListEntry {
+						id
+						mediaId
+						status
+						notes
+						score
+						progress
+					}
+				}
+			""",
+		).getJSONObject("data").getJSONObject("Media").optJSONObject("mediaListEntry")
+		if (existing != null) {
+			saveRate(existing, mangaId)
+			return true
+		}
 		val response = doRequest(
 			REQUEST_MUTATION,
 			"""
@@ -153,6 +178,24 @@ class AniListRepository @Inject constructor(
 			""",
 		)
 		saveRate(response.getJSONObject("data").getJSONObject("SaveMediaListEntry"), mangaId)
+		return false
+	}
+
+	override suspend fun refreshRate(entity: ScrobblingEntity): ScrobblingEntity {
+		val response = doRequest(
+			REQUEST_QUERY,
+			"""
+				MediaList(id: ${entity.id}) {
+					id
+					mediaId
+					status
+					notes
+					score
+					progress
+				}
+			""",
+		)
+		return saveRate(response.getJSONObject("data").getJSONObject("MediaList"), entity.mangaId)
 	}
 
 	override suspend fun updateRate(rateId: Int, mangaId: Long, chapter: Int) {
@@ -172,14 +215,27 @@ class AniListRepository @Inject constructor(
 		saveRate(response.getJSONObject("data").getJSONObject("SaveMediaListEntry"), mangaId)
 	}
 
-	override suspend fun updateRate(rateId: Int, mangaId: Long, rating: Float, status: String?, comment: String?) {
+	override suspend fun updateRate(
+		rateId: Int,
+		mangaId: Long,
+		rating: Float,
+		status: String?,
+		comment: String?,
+		setStartDate: Boolean,
+	) {
 		val scoreRaw = (rating * 100f).roundToInt()
 		val statusString = status?.let { ", status: $it" }.orEmpty()
 		val notesString = comment?.let { ", notes: ${JSONObject.quote(it)}" }.orEmpty()
+		val startedAtString = if (setStartDate) {
+			val today = LocalDate.now()
+			", startedAt: { year: ${today.year}, month: ${today.monthValue}, day: ${today.dayOfMonth} }"
+		} else {
+			""
+		}
 		val response = doRequest(
 			REQUEST_MUTATION,
 			"""
-				SaveMediaListEntry(id: $rateId, scoreRaw: $scoreRaw$statusString$notesString) {
+				SaveMediaListEntry(id: $rateId, scoreRaw: $scoreRaw$statusString$notesString$startedAtString) {
 					id
 					mediaId
 					status
@@ -212,7 +268,7 @@ class AniListRepository @Inject constructor(
 		return ScrobblerMangaInfo(response.getJSONObject("data").getJSONObject("Media"))
 	}
 
-	private suspend fun saveRate(json: JSONObject, mangaId: Long) {
+	private suspend fun saveRate(json: JSONObject, mangaId: Long): ScrobblingEntity {
 		val scoreFormat = ScoreFormat.of(storage[KEY_SCORE_FORMAT])
 		val entity = ScrobblingEntity(
 			scrobbler = ScrobblerService.ANILIST.id,
@@ -225,6 +281,7 @@ class AniListRepository @Inject constructor(
 			rating = scoreFormat.normalize(json.getDouble("score").toFloat()),
 		)
 		db.getScrobblingDao().upsert(entity)
+		return entity
 	}
 
 	private fun ScrobblerManga(json: JSONObject, sourceTitle: String): ScrobblerManga {
