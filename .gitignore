@@ -70,3 +70,7 @@ build_release_apk.bat
 
 # Documentation
 /docs/
+
+# Upstream added
+/research/
+/.agents/
