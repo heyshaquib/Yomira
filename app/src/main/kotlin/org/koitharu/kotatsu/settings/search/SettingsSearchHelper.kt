@@ -302,6 +302,14 @@ class SettingsSearchHelper @Inject constructor(
 				addItem("about_github", R.string.source_code, R.string.url_github, crumbs, AboutSettingsFragment::class.java)
 
 			}
+			group(sectionCrumbs, "Diagnostics") { crumbs ->
+				addItem(
+					"developer_testing_tools",
+					R.string.developer_testing_tools,
+					breadcrumbs = crumbs,
+					fragmentClass = AboutSettingsFragment::class.java,
+				)
+			}
 		}
 
 		return result
