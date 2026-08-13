@@ -165,6 +165,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var isTitleOverCover: Boolean
 		get() = prefs.getBoolean(KEY_TITLE_OVER_COVER, true)
 		set(value) = prefs.edit { putBoolean(KEY_TITLE_OVER_COVER, value) }
+
+	var isDuplicateCheckEnabled: Boolean
+		get() = prefs.getBoolean(KEY_CHECK_DUPLICATES, true)
+		set(value) = prefs.edit { putBoolean(KEY_CHECK_DUPLICATES, value) }
+
 	var isGridSpacingIncreased: Boolean
 		get() = prefs.getBoolean(KEY_GRID_SPACING_INCREASED, false)
 		set(value) = prefs.edit { putBoolean(KEY_GRID_SPACING_INCREASED, value) }
@@ -1072,6 +1077,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_ADBLOCK = "adblock"
 		const val KEY_LIST_MODE = "list_mode_2"
 		const val KEY_TITLE_OVER_COVER = "title_over_cover"
+<<<<<<< HEAD
+=======
+		const val KEY_TITLE_TAP_TO_READ = "title_tap_to_read"
+		const val KEY_CHECK_DUPLICATES = "check_duplicates"
+>>>>>>> cf9ed7b4 (new favorite duplicate detection feature)
 		const val KEY_GRID_SPACING_INCREASED = "grid_spacing_increased"
 		const val KEY_LIST_MODE_HISTORY = "list_mode_history"
 		const val KEY_LIST_MODE_FAVORITES = "list_mode_favorites"
