@@ -23,7 +23,7 @@ import org.koitharu.kotatsu.core.util.ext.end
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.databinding.ActivityStatsBinding
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 import javax.inject.Inject
 
 /**
@@ -50,7 +50,7 @@ class StatsActivity : BaseActivity<ActivityStatsBinding>() {
 			ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
 		)
 		viewBinding.composeView.setContent {
-			DropSauceTheme {
+			YomiraTheme {
 				val density = LocalDensity.current
 				val stats by viewModel.stats.collectAsState()
 				val isLoading by viewModel.isLoading.collectAsState()

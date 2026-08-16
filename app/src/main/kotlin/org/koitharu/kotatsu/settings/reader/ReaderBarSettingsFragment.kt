@@ -35,7 +35,7 @@ import org.koitharu.kotatsu.core.prefs.ReaderControl
 import org.koitharu.kotatsu.main.ui.nav.rememberAnyDrawablePainter
 import org.koitharu.kotatsu.reader.ui.ReaderActionsView
 import org.koitharu.kotatsu.settings.compose.BaseComposeSettingsFragment
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 import org.koitharu.kotatsu.settings.compose.SettingsGroup
 import org.koitharu.kotatsu.settings.compose.SettingsItem
 import org.koitharu.kotatsu.settings.compose.SettingsScaffold
@@ -59,7 +59,7 @@ class ReaderBarSettingsFragment :
 	): View = ComposeView(requireContext()).apply {
 		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 		setContent {
-			DropSauceTheme {
+			YomiraTheme {
 				ReaderBarScreen(
 					initial = settings.readerControls,
 					onChanged = { settings.readerControls = it },

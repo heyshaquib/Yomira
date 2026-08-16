@@ -27,7 +27,7 @@ import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.observeEvent
 import org.koitharu.kotatsu.databinding.SheetDuplicatesBinding
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 import javax.inject.Inject
 import com.google.android.material.R as materialR
 
@@ -52,7 +52,7 @@ class DuplicatesSheet : BaseAdaptiveSheet<SheetDuplicatesBinding>() {
 		super.onViewBindingCreated(binding, savedInstanceState)
 		binding.composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 		binding.composeView.setContent {
-			DropSauceTheme {
+			YomiraTheme {
 				val state by viewModel.state.collectAsState()
 				if (state is DuplicatesState.Ask) {
 					DuplicatesContent(
