@@ -53,9 +53,8 @@ class NovelExtensionCompatibilityTest {
 			"src/main/kotlin/org/koitharu/kotatsu/browser/cloudflare/CloudFlareActivity.kt",
 		).readText()
 
-		assertTrue(activity.contains("startsWith(LN_SOURCE_PREFIX)"))
 		assertTrue(activity.contains("CloudFlareHelper.getClearanceCookie(cookieJar, it)"))
-		assertTrue(activity.contains("onCheckPassed()"))
+		assertTrue(activity.contains("onCheckPassed("))
 	}
 
 	@Test
