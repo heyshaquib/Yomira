@@ -191,6 +191,11 @@
     <string name="restore_from_tachiyomi">Restore from Tachiyomi/Mihon</string>
     <string name="restore_tachiyomi_summary">Import a backup created by Tachiyomi or Mihon</string>
     <string name="periodic_backups_summary">Automatically create backups on a schedule</string>
+    <string name="other_apps">Other apps</string>
+    <string name="export_to_mihon">Export for Mihon</string>
+    <string name="export_to_mihon_summary">Save your favourites and reading progress as a Mihon backup file</string>
+    <string name="export_to_mihon_done">Exported %1$d titles</string>
+    <string name="export_to_mihon_done_partial">Exported %1$d titles, skipped %2$d without a Mihon extension</string>
     <string name="import_from_other_apps">Import from other apps</string>
     <string name="migrate_from_Yomira">Migrate Yomira library</string>
     <string name="migrate_from_Yomira_summary">Move a restored Yomira backup onto your installed extensions</string>
