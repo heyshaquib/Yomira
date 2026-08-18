@@ -159,7 +159,6 @@ class SettingsSearchHelper @Inject constructor(
 			group(sectionCrumbs, "Mode") { crumbs ->
 				addItem(AppSettings.KEY_READER_MODE, R.string.default_mode, breadcrumbs = crumbs, fragmentClass = ReaderSettingsFragment::class.java, keywordArrayRes = intArrayOf(R.array.reader_modes))
 				addItem(AppSettings.KEY_READER_MODE_DETECT, R.string.detect_reader_mode, R.string.detect_reader_mode_summary, crumbs, ReaderSettingsFragment::class.java)
-				addItem(AppSettings.KEY_TITLE_TAP_TO_READ, R.string.title_tap_to_read, R.string.title_tap_to_read_summary, crumbs, ReaderSettingsFragment::class.java)
 				addItem(AppSettings.KEY_CHECK_DUPLICATES, R.string.duplicates_check, R.string.duplicates_check_summary, crumbs, ReaderSettingsFragment::class.java)
 			}
 			group(sectionCrumbs, "Zoom") { crumbs ->
@@ -261,7 +260,7 @@ class SettingsSearchHelper @Inject constructor(
 			}
 			group(sectionCrumbs, ctx.getString(R.string.other_apps)) { crumbs ->
 				addItem("restore_backup", R.string.restore_from_tachiyomi, R.string.restore_tachiyomi_summary, crumbs, BackupSettingsFragment::class.java)
-				addItem("migrate_from_kotatsu", R.string.migrate_from_kotatsu, breadcrumbs = crumbs, fragmentClass = BackupSettingsFragment::class.java, keywordText = listOf("kotatsu"))
+				addItem("migrate_from_Yomira", R.string.migrate_from_Yomira, breadcrumbs = crumbs, fragmentClass = BackupSettingsFragment::class.java, keywordText = listOf("Yomira", "kotatsu"))
 				addItem("export_to_mihon", R.string.export_to_mihon, R.string.export_to_mihon_summary, crumbs, BackupSettingsFragment::class.java, keywordText = listOf("mihon", "tachiyomi", "tachibk", "export"))
 			}
 		}
