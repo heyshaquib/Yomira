@@ -162,13 +162,13 @@ Special thanks to [DropSauce](https://github.com/HuzaifaKhalid1311/DropSauce) fo
 SHA1:
 
 ```plaintext
-28:B3:37:7B:44:57:9E:B4:91:ED:7C:07:AB:14:B2:60:0E:14:F2:82
+C6:63:7E:46:4F:93:88:72:4A:10:6A:81:A9:87:97:D5:B5:E5:2F:5F
 ```
 
 SHA256:
 
 ```plaintext
-C3:D8:9C:31:72:CF:71:CE:A8:23:EF:47:62:71:C4:C1:5C:B3:A7:BA:4C:A4:C9:6C:63:88:ED:D0:2D:D8:45:EE
+EE:A1:5A:77:72:1A:9C:F2:0F:EE:80:EB:98:06:E0:04:47:98:A0:01:16:B6:AE:AB:B0:4E:0D:93:34:8D:64:1E
 ```
 
 </div>
