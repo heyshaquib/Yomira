@@ -20,7 +20,7 @@ android {
 	namespace = 'org.koitharu.kotatsu'
 
 	defaultConfig {
-		applicationId = 'com.yomira.reader'
+		applicationId = 'dev.heyshaquib.yomira'
 		minSdk = 26
 		targetSdk = 37
 		versionCode = 80
