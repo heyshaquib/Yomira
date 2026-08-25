@@ -44,7 +44,7 @@ class ScrollTimerControlView @JvmOverloads constructor(
 	private val binding = ViewScrollTimerBinding.inflate(LayoutInflater.from(context), this)
 
 	private var scrollTimer: ScrollTimer? = null
-	private var labelPattern = context.getString(R.string.speed_value)
+	private val percentFormat = NumberFormat.getPercentInstance()
 	private var readerMode: ReaderMode = ReaderMode.STANDARD
 	private var isApplyingSliderMode = false
 	private var isEpub = false

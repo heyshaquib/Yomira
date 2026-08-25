@@ -24,6 +24,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.transition.ChangeBounds
 import androidx.transition.Fade
 import androidx.transition.Slide
 import androidx.transition.Transition
@@ -559,6 +560,11 @@ class ReaderActivity :
                 viewBinding.toolbarDocked?.let {
                     transition.addTransition(Slide(Gravity.BOTTOM).addTarget(it))
                 }
+                // The autoscroll panel dodges the docked toolbar's inset edge, so showing the
+                // toolbar re-lays it out. Without a ChangeBounds target for it that re-layout
+                // lands in one frame — the panel snaps to its new spot and the whole bottom
+                // area flashes before the toolbar finishes sliding in.
+                transition.addTransition(ChangeBounds().addTarget(viewBinding.timerControl))
                 // Re-dispatching insets changes the reader's own padding and the toolbar margins,
                 // which forces a full re-layout of the page view *while* the bars are sliding —
                 // that is the stutter. Hold it back until the slide is done.
@@ -833,10 +839,27 @@ class ReaderActivity :
             && !viewBinding.timerControl.isVisible
             && !viewBinding.ttsControl.isVisible
         button.setIconResource(if (isTts) R.drawable.ic_voice_over else R.drawable.ic_timelapse)
-        if (button.isVisible != isButtonVisible) {
-            val transition = Fade().addTarget(button).setDuration(FAB_FADE_DURATION)
-            TransitionManager.beginDelayedTransition(viewBinding.root, transition)
+        if (button.isVisible == isButtonVisible) {
+            return
+        }
+        if (!isAnimationsEnabled) {
             button.isVisible = isButtonVisible
+            return
+        }
+        // Fade the FAB with its own animator instead of staging another delayed transition:
+        // this runs from inside the panel-slide and toolbar-slide code paths, and a second
+        // beginDelayedTransition() on the same scene root cancels the one the caller just
+        // queued — which is what made the bottom area flash instead of animating.
+        button.animate().cancel()
+        if (isButtonVisible) {
+            button.alpha = 0f
+            button.isVisible = true
+            button.animate().alpha(1f).setDuration(FAB_FADE_DURATION).start()
+        } else {
+            button.animate().alpha(0f).setDuration(FAB_FADE_DURATION).withEndAction {
+                button.isVisible = false
+                button.alpha = 1f
+            }.start()
         }
     }
 
@@ -870,8 +893,7 @@ class ReaderActivity :
 
         private const val TOAST_DURATION = 2000L
         private const val FAB_FADE_DURATION = 200L
-        // matches androidx.transition's default duration, so the panel and the toolbar move together
-        private const val PANEL_SLIDE_DURATION = 300L
+
 		private const val EPUB_MODE_SCROLL = "scroll"
 		private const val EPUB_MODE_PAGED_RTL = "paged_rtl"
 
