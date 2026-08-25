@@ -23,13 +23,24 @@ import kotlinx.coroutines.yield
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.util.ext.resolveDp
-import kotlin.math.roundToLong
 
-private const val MAX_DELAY = 32L
-private const val MAX_SWITCH_DELAY = 10_000L
+private const val MIN_DELAY = 1L
+private const val MAX_TICK_STRETCH = 32L
 private const val INTERACTION_SKIP_MS = 2_000L
 private const val SPEED_FACTOR_DELTA = 0.02f
 
+/**
+ * Distance covered per [MIN_DELAY] tick at 100%, in dp. Scroll rate is px/ms, so holding the tick
+ * length fixed and scaling only the step makes the speed exactly proportional to the slider
+ * position — the old curve derived the *delay* from the slider, which made rate scale as
+ * 1/(1 - position) and left everything below ~90% feeling equally slow.
+ */
+private const val MAX_STEP_DP = 1.587f
+
+/** Below this, stretch the tick rather than waking up 1000x/s to move a fraction of a pixel. */
+private const val MIN_STEP_PX = 0.5f
+
+private const val MIN_SPEED = 0.01f
 class ScrollTimer @AssistedInject constructor(
 	@Assisted resources: Resources,
 	@Assisted private val listener: ReaderControlDelegate.OnInteractionListener,
@@ -39,13 +50,14 @@ class ScrollTimer @AssistedInject constructor(
 
 	private val coroutineScope = lifecycleOwner.lifecycleScope
 	private var job: Job? = null
-	private var delayMs: Long = 10L
-	var pageSwitchDelay: Long = 100L
+	private var delayMs: Long = 0L
+	private var stepPx: Float = 0f
+	var pageSwitchDelay: Long = 0L
 		private set
 	private var resumeAt = 0L
 	private var isTouchDown = MutableStateFlow(false)
 	private val isRunning = MutableStateFlow(false)
-	private val scrollDelta = resources.resolveDp(1)
+	private val maxStepPx = resources.resolveDp(MAX_STEP_DP)
 
 	val isActive: StateFlow<Boolean>
 		get() = isRunning
@@ -56,6 +68,12 @@ class ScrollTimer @AssistedInject constructor(
 		}.flowOn(Dispatchers.Default)
 			.onEach {
 				onSpeedChanged(it)
+			}.launchIn(coroutineScope)
+		settings.observeAsFlow(AppSettings.KEY_READER_AUTOSCROLL_PAGE_DELAY) {
+			readerAutoscrollPageDelay
+		}.flowOn(Dispatchers.Default)
+			.onEach {
+				pageSwitchDelay = it * 1000L
 			}.launchIn(coroutineScope)
 	}
 
@@ -83,30 +101,29 @@ class ScrollTimer @AssistedInject constructor(
 		}
 	}
 
+	// The running job reads delayMs/stepPx every tick, so a speed change takes effect without
+	// restarting anything.
 	private fun onSpeedChanged(speed: Float) {
-		if (speed <= 0f) {
-			delayMs = 0L
-			pageSwitchDelay = 0L
-		} else {
-			val speedFactor = 1f - speed
-			delayMs = (MAX_DELAY * speedFactor).roundToLong()
-			pageSwitchDelay = (MAX_SWITCH_DELAY * speedFactor).roundToLong()
-		}
-		if ((job == null) != (delayMs == 0L)) {
-			restartJob()
-		}
+		val fraction = speed.coerceIn(MIN_SPEED, 1f)
+		val perTick = maxStepPx * fraction
+		val ticks = (MIN_STEP_PX / perTick).toLong().coerceIn(1L, MAX_TICK_STRETCH)
+		delayMs = MIN_DELAY * ticks
+		stepPx = perTick * ticks
 	}
 
 	private fun restartJob() {
 		job?.cancel()
 		resumeAt = 0L
-		if (!isRunning.value || delayMs == 0L) {
+		if (!isRunning.value) {
 			job = null
 			return
 		}
 		job = coroutineScope.launch {
-			var accumulator = 0L
 			var speedFactor = 1f
+			// stepPx is fractional; carry the leftover between ticks so a sub-pixel step still
+			// scrolls at the right average rate on every screen density.
+			var pixelCarry = 0f
+			var lastProgressAt = SystemClock.elapsedRealtime()
 			while (isActive) {
 				if (isPaused()) {
 					speedFactor = (speedFactor - SPEED_FACTOR_DELTA).coerceAtLeast(0f)
@@ -117,6 +134,8 @@ class ScrollTimer @AssistedInject constructor(
 					delay(delayMs)
 				} else if (speedFactor == 0f) {
 					delayUntilResumed()
+					// The pause is not dwell time on the page, so don't let it count.
+					lastProgressAt = SystemClock.elapsedRealtime()
 					continue
 				} else {
 					delay((delayMs * (1f + speedFactor * 2)).toLong())
@@ -124,12 +143,22 @@ class ScrollTimer @AssistedInject constructor(
 				if (!listener.isReaderResumed()) {
 					continue
 				}
-				if (!listener.scrollBy(scrollDelta, false)) {
-					accumulator += delayMs
+				pixelCarry += stepPx
+				val step = pixelCarry.toInt()
+				var didScroll = false
+				if (step > 0) {
+					pixelCarry -= step
+					didScroll = listener.scrollBy(step, false)
 				}
-				if (accumulator >= pageSwitchDelay) {
+				// Measure real elapsed time. Summing the nominal tick delays undercounted badly —
+				// each iteration costs more than it asks to sleep — so a nominal 4s page actually
+				// stayed up for 6-7s.
+				val now = SystemClock.elapsedRealtime()
+				if (didScroll) {
+					lastProgressAt = now
+				} else if (now - lastProgressAt >= pageSwitchDelay) {
 					listener.switchPageBy(1)
-					accumulator -= pageSwitchDelay
+					lastProgressAt = SystemClock.elapsedRealtime()
 				}
 			}
 		}
