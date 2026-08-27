@@ -380,8 +380,10 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		synchronized(chapter) {
 			if (chapter.content != null) return
 			// Leave content null on failure so the next bind retries. Caching a blank chapter would
-			// permanently blank it for remote sources, where one flaky request is expected.
-			val raw = runCatching { chapterContent?.loadHtml(chapter.url) }.getOrNull() ?: return
+			// permanently blank it, for a remote source where one flaky request is expected and for a
+			// download whose archive was momentarily unreadable alike.
+			val raw = runCatching { chapterContent?.loadHtml(chapter.url) }.getOrNull()
+			if (raw.isNullOrBlank()) return
 			chapter.content = parseChapter(chapter, raw)
 		}
 	}
@@ -1610,11 +1612,22 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 		override fun loadHtml(url: String): String {
 			val uri = url.toUri()
-			val entryName = uri.fragment.orEmpty()
-			return synchronized(lock) {
-				val zip = archives[File(uri.schemeSpecificPart)] ?: return ""
-				val entry = zip.getEntry(entryName) ?: zip.getEntry(entryName.removePrefix("/"))
-				entry?.let { zip.getInputStream(it).bufferedReader().use { reader -> reader.readText() } }.orEmpty()
+			if (uri.isZipUri()) {
+				val entryName = uri.fragment.orEmpty()
+				return synchronized(lock) {
+					// Throw rather than return "" on a miss: an empty string reads as a legitimately
+					// empty chapter and gets cached, so one unreadable archive blanked the download for
+					// good. Failing lets the next bind retry.
+					val zip = checkNotNull(archives[File(uri.schemeSpecificPart)]) { "Archive not open: $url" }
+					val entry = zip.getEntry(entryName) ?: zip.getEntry(entryName.removePrefix("/"))
+					checkNotNull(entry) { "Missing entry $entryName in ${uri.schemeSpecificPart}" }
+					zip.getInputStream(entry).bufferedReader().use { reader -> reader.readText() }
+				}
+			}
+			if (repository == null) return ""
+			return runBlocking {
+				val chapter = byUrl[url] ?: return@runBlocking ""
+				repository.getChapterHtml(chapter).orEmpty()
 			}
 		}
 
