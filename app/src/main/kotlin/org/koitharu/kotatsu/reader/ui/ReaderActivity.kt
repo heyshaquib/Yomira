@@ -893,6 +893,7 @@ class ReaderActivity :
 
         private const val TOAST_DURATION = 2000L
         private const val FAB_FADE_DURATION = 200L
+        private const val PANEL_SLIDE_DURATION = 300L
 
 		private const val EPUB_MODE_SCROLL = "scroll"
 		private const val EPUB_MODE_PAGED_RTL = "paged_rtl"
