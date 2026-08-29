@@ -62,6 +62,7 @@ private val IndentStep = 16.dp
  *
  * [onContentHeight] reports the pixel height the list needs when every row fits on screen, or null
  * when it doesn't — the sheet uses it to shrink its resting height for short filter sets.
+ * [onScrolledDown] reports whether the list is scrolled away from its top.
  */
 @Composable
 fun MihonFilterContent(
@@ -71,9 +72,13 @@ fun MihonFilterContent(
 	listener: MihonFilterListener,
 	contentPadding: PaddingValues,
 	onContentHeight: (Int?) -> Unit,
+	onScrolledDown: (Boolean) -> Unit,
 ) {
 	if (isLoading || isEmpty) {
-		LaunchedEffect(isLoading, isEmpty) { onContentHeight(null) }
+		LaunchedEffect(isLoading, isEmpty) {
+			onContentHeight(null)
+			onScrolledDown(false)
+		}
 		Box(
 			modifier = Modifier
 				.fillMaxSize()
@@ -93,6 +98,11 @@ fun MihonFilterContent(
 		return
 	}
 	val listState = rememberLazyListState()
+	// The sheet may only be dragged while the list sits at its top; otherwise a downward swipe
+	// meant to scroll back up would drag the whole sheet shut instead.
+	LaunchedEffect(listState) {
+		snapshotFlow { listState.canScrollBackward }.collect { onScrolledDown(it) }
+	}
 	LazyColumn(
 		state = listState,
 		modifier = Modifier.fillMaxSize(),

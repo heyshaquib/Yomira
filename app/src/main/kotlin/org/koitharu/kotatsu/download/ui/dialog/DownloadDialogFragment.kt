@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.download.ui.dialog
 
 import android.os.Bundle
 import android.view.View
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,7 +106,11 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 			title = stringResource(R.string.download),
 			message = summary,
 		) {
-			Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+			Column(
+				modifier = Modifier
+					.verticalScroll(rememberScrollState())
+					.animateContentSize(),
+			) {
 				// Whole manga
 				OptionRow(
 					selected = selectedOption == OPTION_WHOLE_MANGA,
@@ -241,23 +247,40 @@ class DownloadDialogFragment : ComposeAlertDialogFragment() {
 					Text(
 						text = stringResource(R.string.more_options),
 						style = MaterialTheme.typography.bodyLarge,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						color = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.weight(1f),
+					)
+					Icon(
+						painter = painterResource(R.drawable.ic_expand_more),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.primary,
+						modifier = Modifier
+							.padding(start = 8.dp)
+							.size(24.dp)
+							.rotate(
+								animateFloatAsState(
+									targetValue = if (moreExpanded) 180f else 0f,
+									label = "moreOptionsExpand",
+								).value,
+							),
 					)
 				}
 				if (moreExpanded) {
-					SelectorField(
-						label = stringResource(R.string.destination_directory),
-						current = destinations.getOrNull(destinationIndex)
-							?.let { it.title ?: stringResource(it.titleRes) } ?: "",
-						items = destinations.map { it.title ?: stringResource(it.titleRes) },
-						onSelect = { destinationIndex = it },
-					)
-					SelectorField(
-						label = stringResource(R.string.preferred_download_format),
-						current = formatLabels.getOrNull(formatIndex) ?: "",
-						items = formatLabels.toList(),
-						onSelect = { formatIndex = it },
-					)
+					Column {
+						SelectorField(
+							label = stringResource(R.string.destination_directory),
+							current = destinations.getOrNull(destinationIndex)
+								?.let { it.title ?: stringResource(it.titleRes) } ?: "",
+							items = destinations.map { it.title ?: stringResource(it.titleRes) },
+							onSelect = { destinationIndex = it },
+						)
+						SelectorField(
+							label = stringResource(R.string.preferred_download_format),
+							current = formatLabels.getOrNull(formatIndex) ?: "",
+							items = formatLabels.toList(),
+							onSelect = { formatIndex = it },
+						)
+					}
 				}
 			}
 

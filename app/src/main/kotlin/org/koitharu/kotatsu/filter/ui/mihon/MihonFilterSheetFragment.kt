@@ -95,6 +95,7 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 						)
 					},
 					onContentHeight = ::onContentHeightChanged,
+					onScrolledDown = ::onScrolledDownChanged,
 				)
 			}
 		}
@@ -143,6 +144,16 @@ class MihonFilterSheetFragment : BaseAdaptiveSheet<SheetFilterMihonBinding>(), A
 		dialog?.findViewById<View>(materialR.id.design_bottom_sheet)
 			?.viewTreeObserver
 			?.removeOnPreDrawListener(listener)
+	}
+
+	/**
+	 * A Compose list doesn't take part in the View nested-scroll chain, so BottomSheetBehavior would
+	 * otherwise grab every downward drag and pull the sheet shut mid-list. Locking the drag while the
+	 * list is scrolled hands those drags back to the list, and unlocking it at the top restores the
+	 * normal swipe-down-to-dismiss.
+	 */
+	private fun onScrolledDownChanged(isScrolledDown: Boolean) {
+		(dialog as? BottomSheetDialog)?.behavior?.isDraggable = !isScrolledDown
 	}
 
 	/** Re-fits the sheet whenever the list reports a different content height. */

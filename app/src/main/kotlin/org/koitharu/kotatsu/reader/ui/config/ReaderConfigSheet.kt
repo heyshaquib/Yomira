@@ -641,6 +641,33 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         )
                         EpubThemeCard(modifier = Modifier.weight(1f).height(120.dp))
                     }
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        ToolGridCard(
+                            icon = R.drawable.ic_timer,
+                            label = stringResource(R.string.automatic_scroll),
+                            onClick = {
+                                dismiss()
+                                callback?.onScrollTimerClick(isLongClick = false)
+                            },
+                            modifier = Modifier.weight(1f),
+                            iconSize = 24.dp,
+                            pill = true,
+                        )
+                        ToolGridCard(
+                            icon = R.drawable.ic_voice_over,
+                            label = stringResource(R.string.text_to_speech),
+                            onClick = {
+                                dismiss()
+                                callback?.onTextToSpeechClick()
+                            },
+                            modifier = Modifier.weight(1f),
+                            iconSize = 24.dp,
+                            pill = true,
+                        )
+                    }
                 }
                 if (publisherStyleEnabled) {
                     Text(
@@ -1601,6 +1628,8 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
         modifier: Modifier = Modifier,
         shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp),
         iconSize: androidx.compose.ui.unit.Dp = 32.dp,
+        /** Lays the card out as a short horizontal pill instead of a tall square tile. */
+        pill: Boolean = false,
     ) {
         val containerColor = if (checked) {
             MaterialTheme.colorScheme.primaryContainer
@@ -1622,26 +1651,21 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
 
         Surface(
             onClick = onClick,
-            shape = shape,
+            shape = if (pill) CircleShape else shape,
             color = containerColor,
             contentColor = contentColor,
-            modifier = modifier.heightIn(min = 96.dp),
+            modifier = modifier.heightIn(min = if (pill) 56.dp else 96.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
+            val iconContent = @Composable {
                 Icon(
                     painter = painterResource(icon),
                     contentDescription = label,
                     modifier = Modifier.size(iconSize),
                     tint = iconColor,
                 )
+            }
+            val labelContent = @Composable {
                 if (label != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,
@@ -1650,6 +1674,35 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
+                }
+            }
+            if (pill) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    iconContent()
+                    if (label != null) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        labelContent()
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    iconContent()
+                    if (label != null) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        labelContent()
+                    }
                 }
             }
         }
