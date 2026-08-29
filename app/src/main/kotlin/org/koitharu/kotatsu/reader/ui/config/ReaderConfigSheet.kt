@@ -636,10 +636,10 @@ class ReaderConfigSheet : BaseAdaptiveSheet<SheetReaderConfigBinding>() {
                                 publisherStyleEnabled = !publisherStyleEnabled
                                 settings.isEpubPublisherStyleEnabled = publisherStyleEnabled
                             },
-                            modifier = Modifier.weight(1f).height(96.dp),
-                            iconSize = 22.dp,
+                            modifier = Modifier.weight(1f).height(120.dp),
+                            iconSize = 24.dp,
                         )
-                        EpubThemeCard(modifier = Modifier.weight(1f).height(96.dp))
+                        EpubThemeCard(modifier = Modifier.weight(1f).height(120.dp))
                     }
                 }
                 if (publisherStyleEnabled) {
