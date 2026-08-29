@@ -75,3 +75,6 @@ build_release_apk.bat
 # Upstream added
 /research/
 /.agents/
+# Unrelated scratch files that end up in the project root
+/*.json
+/*.html

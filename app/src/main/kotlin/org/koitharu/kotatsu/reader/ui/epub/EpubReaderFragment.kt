@@ -107,12 +107,14 @@ import org.koitharu.kotatsu.core.util.ext.getThemeColor
 import org.koitharu.kotatsu.core.util.ext.isNightMode
 import org.koitharu.kotatsu.core.util.ext.observe
 import org.koitharu.kotatsu.core.util.ext.URI_SCHEME_ZIP
+import org.koitharu.kotatsu.core.util.ext.isZipUri
 import org.koitharu.kotatsu.local.data.input.EpubParser
 import org.koitharu.kotatsu.databinding.FragmentReaderEpubBinding
 import org.koitharu.kotatsu.databinding.SheetEpubDictionaryBinding
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.reader.ui.ReaderState
+import org.koitharu.kotatsu.reader.ui.tts.ReaderTts
 import org.koitharu.kotatsu.reader.ui.pager.BaseReaderAdapter
 import org.koitharu.kotatsu.reader.ui.pager.BaseReaderFragment
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
@@ -146,6 +148,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	@Inject
 	lateinit var mangaRepositoryFactory: MangaRepository.Factory
+
+	@Inject
+	lateinit var tts: ReaderTts
 
 	private var chapters: List<NativeChapter> = emptyList()
 	private val chapterDividerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -182,6 +187,9 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	private var highlightMangaId = 0L
 	private var cachedCustomTypeface: Typeface? = null
 	private var cachedCustomTypefaceStamp = Long.MIN_VALUE
+	private var ttsHighlightHost: TextView? = null
+	private var isTtsPickMode = false
+	private val ttsHighlightSpan = HighlightColorSpan(0)
 
 	private val rebuildRunnable = Runnable {
 		val locator = reflowLocator
@@ -228,14 +236,156 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			.observe(viewLifecycleOwner) { refreshAlignment() }
 		settings.observeAsFlow(AppSettings.KEY_EPUB_PUBLISHER_STYLE) { isEpubPublisherStyleEnabled }
 			.observe(viewLifecycleOwner) { scheduleReflow() }
+		settings.observeAsFlow(AppSettings.KEY_EPUB_BIONIC_READING) { isEpubBionicReadingEnabled }
+			.observe(viewLifecycleOwner) { scheduleReflow() }
 		settings.observeAsFlow(AppSettings.KEY_EPUB_READING_MODE) { epubReadingMode }
 			.observe(viewLifecycleOwner) {
 				binding.root.requestApplyInsets()
 				switchReadingMode()
 			}
+		tts.position.observe(viewLifecycleOwner) { onTtsPositionChanged(it) }
+		tts.chapterFinished.observe(viewLifecycleOwner) { onTtsChapterFinished(it) }
+	}
+
+	/** Starts speaking the current chapter from wherever the reader is right now. */
+	fun startTts() {
+		val locator = currentLocator().clamped()
+		startTtsAt(locator.chapter, locator.offset)
+	}
+
+	/** While the TTS panel is open, a tap picks the paragraph to read from. */
+	fun setTtsPickMode(value: Boolean) {
+		isTtsPickMode = value
+	}
+
+	private fun startTtsAt(chapter: Int, offset: Int) {
+		loadChapterForTts(chapter) { text ->
+			tts.setChapter(chapter, text)
+			tts.play(paragraphStart(text, offset))
+		}
+	}
+
+	private fun startTtsAtTap(textView: TextView, event: MotionEvent) {
+		val location = textView.tag as? TextLocation ?: return
+		val offset = offsetAt(textView, event) ?: return
+		startTtsAt(location.chapter, location.baseOffset + offset)
+	}
+
+	private fun onTtsChapterFinished(chapter: Int) {
+		val next = chapter + 1
+		if (next > chapters.lastIndex) {
+			return
+		}
+		loadChapterForTts(next) { text ->
+			goTo(Locator(next, 0), smooth = true)
+			tts.setChapter(next, text)
+			tts.play(0)
+		}
+	}
+
+	private fun loadChapterForTts(index: Int, onLoaded: (String) -> Unit) {
+		if (chapters.getOrNull(index) == null) {
+			return
+		}
+		viewLifecycleOwner.lifecycleScope.launch {
+			val text = withContext(Dispatchers.Default) {
+				ensureChapterLoaded(index)
+				chapters.getOrNull(index)?.text?.toString()
+			}
+			if (!text.isNullOrEmpty()) onLoaded(text)
+		}
+	}
+
+	private fun onTtsPositionChanged(position: ReaderTts.Position?) {
+		(ttsHighlightHost?.text as? Spannable)?.removeSpan(ttsHighlightSpan)
+		ttsHighlightHost = null
+		if (position == null) {
+			return
+		}
+		if (bringTtsPositionIntoView(position)) {
+			applyTtsHighlight(position)
+		} else {
+			// The page it lives on still has to be bound and laid out before it can be painted on.
+			viewBinding?.root?.post { applyTtsHighlight(position) }
+		}
+	}
+
+	/**
+	 * Puts the spoken sentence on screen. Returns false when that needed a page turn or a jump, so
+	 * the caller knows the target view does not exist yet.
+	 */
+	private fun bringTtsPositionIntoView(position: ReaderTts.Position): Boolean {
+		val pager = pagerView ?: return true
+		val target = pages.indexOfFirst {
+			it.chapter == position.chapter && position.start in it.start until it.end
+		}
+		if (target < 0) {
+			// Outside the loaded page window - the locator jump rebuilds it around the sentence.
+			goTo(Locator(position.chapter, position.start), smooth = true)
+			return false
+		}
+		if (target == pager.currentItem) {
+			return true
+		}
+		pager.setCurrentItem(target, isAnimationEnabled())
+		return false
+	}
+
+	private fun applyTtsHighlight(position: ReaderTts.Position) {
+		ttsHighlightSpan.color = highlightColor
+		val host = textViewAt(position.chapter, position.start) ?: return
+		val location = host.tag as? TextLocation ?: return
+		val spannable = host.text as? Spannable ?: return
+		val start = (position.start - location.baseOffset).coerceIn(0, spannable.length)
+		val end = (position.end - location.baseOffset).coerceIn(start, spannable.length)
+		if (start != end) {
+			spannable.setSpan(ttsHighlightSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+			ttsHighlightHost = host
+		}
+		followTtsLine(host, start)
+	}
+
+	/**
+	 * In paged mode the pager keeps neighbouring pages bound off screen, so the match has to be the
+	 * page actually being shown - otherwise the highlight lands on a page nobody is looking at.
+	 */
+	private fun textViewAt(chapter: Int, offset: Int): TextView? {
+		val recycler = verticalView ?: (pagerView?.getChildAt(0) as? RecyclerView) ?: return null
+		val visiblePage = pagerView?.currentItem
+		for (index in 0 until recycler.childCount) {
+			val textView = recycler.getChildAt(index) as? TextView ?: continue
+			if (visiblePage != null && recycler.getChildAdapterPosition(textView) != visiblePage) continue
+			val location = textView.tag as? TextLocation ?: continue
+			if (location.chapter == chapter && offset - location.baseOffset in 0 until textView.text.length) {
+				return textView
+			}
+		}
+		return null
+	}
+
+	/** Keeps the spoken line on screen in scroll mode without scrolling on every single sentence. */
+	private fun followTtsLine(host: TextView, offsetInView: Int) {
+		val recycler = verticalView ?: return
+		val layout = host.layout ?: return
+		val line = layout.getLineForOffset(offsetInView)
+		val top = host.top + host.paddingTop + layout.getLineTop(line)
+		val bottom = host.top + host.paddingTop + layout.getLineBottom(line)
+		val visibleTop = recycler.paddingTop
+		val visibleBottom = recycler.height - recycler.paddingBottom
+		if (top >= visibleTop && bottom <= visibleBottom) {
+			return
+		}
+		recycler.smoothScrollBy(0, top - visibleTop - (visibleBottom - visibleTop) / 3)
+	}
+
+	/** Rounds a tapped offset down to the start of its paragraph, which is what a tap means here. */
+	private fun paragraphStart(text: String, offset: Int): Int {
+		val at = offset.coerceIn(0, text.length - 1)
+		return text.lastIndexOf('\n', at).let { if (it < 0) 0 else it + 1 }
 	}
 
 	override fun onDestroyView() {
+		ttsHighlightHost = null
 		viewBinding?.root?.removeCallbacks(rebuildRunnable)
 		highlightsJob?.cancel()
 		highlightsJob = null
@@ -354,20 +504,21 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 				url = chapter.url,
 			)
 		}
-		// A novel source has no archive on disk: its chapters are fetched from the source itself.
-		if (manga.source.isNovelSource) {
-			return PreparedBook(items, RemoteContentSource(mangaRepositoryFactory.create(manga.source), source))
-		}
 		val archives = HashMap<File, ZipFile>()
 		try {
-			items.map { File(it.url.toUri().schemeSpecificPart) }
+			items.mapNotNull { it.url.toUri().takeIf { u -> u.isZipUri() }?.let { u -> File(u.schemeSpecificPart) } }
 				.distinct()
 				.forEach { archives[it] = ZipFile(it) }
 		} catch (error: Throwable) {
 			archives.values.forEach(ZipFile::close)
 			throw error
 		}
-		return PreparedBook(items, ZipContentSource(archives))
+		val repository = if (manga.source.isNovelSource) {
+			mangaRepositoryFactory.create(manga.source)
+		} else {
+			null
+		}
+		return PreparedBook(items, HybridContentSource(archives, repository, source))
 	}
 
 	private fun ensureChaptersLoaded(range: IntRange) {
@@ -380,8 +531,10 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		synchronized(chapter) {
 			if (chapter.content != null) return
 			// Leave content null on failure so the next bind retries. Caching a blank chapter would
-			// permanently blank it for remote sources, where one flaky request is expected.
-			val raw = runCatching { chapterContent?.loadHtml(chapter.url) }.getOrNull() ?: return
+			// permanently blank it, for a remote source where one flaky request is expected and for a
+			// download whose archive was momentarily unreadable alike.
+			val raw = runCatching { chapterContent?.loadHtml(chapter.url) }.getOrNull()
+			if (raw.isNullOrBlank()) return
 			chapter.content = parseChapter(chapter, raw)
 		}
 	}
@@ -634,7 +787,8 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		val key = "${container.width}:${container.height}:$effectiveFontSize:${readerTypeface.hashCode()}:" +
 			"${settings.epubCustomFontRevision}:" +
 			"$effectiveLineHeight:$effectiveParagraphSpacing:$effectiveHorizontalPadding:$effectiveVerticalPadding:" +
-			"$effectiveTextAlign:${settings.epubReadingMode}:${settings.isEpubPublisherStyleEnabled}"
+			"$effectiveTextAlign:${settings.epubReadingMode}:${settings.isEpubPublisherStyleEnabled}:" +
+			"${settings.isEpubBionicReadingEnabled}"
 		container.setBackgroundColor(backgroundColor)
 		if (pages.isNotEmpty() && paginationKey == key && pageRange?.contains(locator.chapter) == true) {
 			renderPagedReady(container, locator, pageInChapter)
@@ -815,6 +969,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			text.getSpans(0, text.length, TypefaceSpan::class.java).forEach(text::removeSpan)
 		}
 		applyParagraphSpacing(text)
+		if (settings.isEpubBionicReadingEnabled) applyBionicReading(text)
 		highlights.forEach { bookmark ->
 			if (bookmark.chapterId != chapter.id) return@forEach
 			val highlight = bookmark.epubHighlight ?: return@forEach
@@ -825,6 +980,26 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			text.setSpan(HighlightMarker(bookmark.pageId), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 		}
 		return text
+	}
+
+	/**
+	 * Bionic reading: bold the leading letters of every word so the eye can skim on the word shapes.
+	 * The prefix length comes from [bionicPrefixLength], the table text-vide uses at its default
+	 * fixation point, so the result matches other readers rather than a guessed percentage.
+	 */
+	private fun applyBionicReading(text: Spannable) {
+		// ponytail: re-derived on every bind, like the paragraph-spacing scan above. Cache the spanned
+		// copy on NativeChapter if long chapters ever stutter while scrolling.
+		BIONIC_WORD.findAll(text).forEach { match ->
+			val word = match.value
+			// Scripts without word spacing have no leading letters to fix on - the whole run reads as
+			// one "word" and would come out almost entirely bold.
+			if (BIONIC_UNSPACED_SCRIPT.containsMatchIn(word)) return@forEach
+			val prefix = bionicPrefixLength(word.length)
+			if (prefix == 0) return@forEach
+			val start = match.range.first
+			text.setSpan(StyleSpan(Typeface.BOLD), start, start + prefix, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+		}
 	}
 
 	private fun applyParagraphSpacing(text: Spannable) {
@@ -1005,6 +1180,12 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			}
 		})
 		textView.setOnTouchListener { _, event ->
+			if (isTtsPickMode) {
+				// Swallow the tap so it doesn't also turn the page or toggle the UI; RecyclerView
+				// still intercepts drags, so scrolling to find a paragraph keeps working.
+				if (event.actionMasked == MotionEvent.ACTION_UP) startTtsAtTap(textView, event)
+				return@setOnTouchListener true
+			}
 			when (event.actionMasked) {
 				MotionEvent.ACTION_DOWN -> {
 					pressedLink = findSpanAt(textView, event, URLSpan::class.java)
@@ -1045,14 +1226,20 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 
 	private fun <T> findSpanAt(textView: TextView, event: MotionEvent, type: Class<T>): T? {
 		val text = textView.text as? Spanned ?: return null
-		if (text.isEmpty()) return null
+		val offset = offsetAt(textView, event) ?: return null
+		return text.getSpans(offset, offset + 1, type).firstOrNull()
+	}
+
+	/** Character offset under the touch, in the text of [textView] itself. */
+	private fun offsetAt(textView: TextView, event: MotionEvent): Int? {
+		val text = textView.text
+		if (text.isNullOrEmpty()) return null
 		val layout = textView.layout ?: return null
 		val x = (event.x - textView.totalPaddingLeft + textView.scrollX).toInt()
 		val y = (event.y - textView.totalPaddingTop + textView.scrollY).toInt()
 		if (x !in 0..layout.width || y !in 0..layout.height) return null
 		val line = layout.getLineForVertical(y)
-		val offset = layout.getOffsetForHorizontal(line, x.toFloat()).coerceIn(0, text.length - 1)
-		return text.getSpans(offset, offset + 1, type).firstOrNull()
+		return layout.getOffsetForHorizontal(line, x.toFloat()).coerceIn(0, text.length - 1)
 	}
 
 	private fun showRemoveHighlight(bookmarkId: Long) {
@@ -1296,7 +1483,7 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 	 */
 	private fun searchBook(query: String) {
 		if (query.isEmpty() || chapters.isEmpty()) return
-		val isRemote = chapterContent is RemoteContentSource
+		val isRemote = (chapterContent as? HybridContentSource)?.hasRemote == true
 		Toast.makeText(requireContext(), R.string.loading_, Toast.LENGTH_SHORT).show()
 		viewLifecycleOwner.lifecycleScope.launch {
 			val results = withContext(Dispatchers.IO) {
@@ -1604,17 +1791,34 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		fun resolveExternalLink(chapterUrl: String, href: String): String?
 	}
 
-	private class ZipContentSource(private val archives: Map<File, ZipFile>) : ChapterContent {
+	private class HybridContentSource(
+		private val archives: Map<File, ZipFile>,
+		private val repository: MangaRepository?,
+		chapters: List<MangaChapter>,
+	) : ChapterContent {
 
+		val hasRemote: Boolean get() = repository != null
 		private val lock = Any()
+		private val byUrl = chapters.associateBy { it.url }
 
 		override fun loadHtml(url: String): String {
 			val uri = url.toUri()
-			val entryName = uri.fragment.orEmpty()
-			return synchronized(lock) {
-				val zip = archives[File(uri.schemeSpecificPart)] ?: return ""
-				val entry = zip.getEntry(entryName) ?: zip.getEntry(entryName.removePrefix("/"))
-				entry?.let { zip.getInputStream(it).bufferedReader().use { reader -> reader.readText() } }.orEmpty()
+			if (uri.isZipUri()) {
+				val entryName = uri.fragment.orEmpty()
+				return synchronized(lock) {
+					// Throw rather than return "" on a miss: an empty string reads as a legitimately
+					// empty chapter and gets cached, so one unreadable archive blanked the download for
+					// good. Failing lets the next bind retry.
+					val zip = checkNotNull(archives[File(uri.schemeSpecificPart)]) { "Archive not open: $url" }
+					val entry = zip.getEntry(entryName) ?: zip.getEntry(entryName.removePrefix("/"))
+					checkNotNull(entry) { "Missing entry $entryName in ${uri.schemeSpecificPart}" }
+					zip.getInputStream(entry).bufferedReader().use { reader -> reader.readText() }
+				}
+			}
+			if (repository == null) return ""
+			return runBlocking {
+				val chapter = byUrl[url] ?: return@runBlocking ""
+				repository.getChapterHtml(chapter).orEmpty()
 			}
 		}
 
@@ -1622,65 +1826,42 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			// A downloaded novel keeps its illustrations as absolute urls; let coil fetch those.
 			if (source.startsWith("http://", true) || source.startsWith("https://", true)) return source
 			val uri = chapterUrl.toUri()
-			val entryName = resolveEpubEntry(uri.fragment.orEmpty(), source)
-			return synchronized(lock) {
-				val archive = archives[File(uri.schemeSpecificPart)] ?: return null
-				val entry = archive.getEntry(entryName)
-					?: archive.getEntry(entryName.removePrefix("/"))
-					?: return null
-				archive.getInputStream(entry).use { it.readBytes() }
+			if (uri.isZipUri()) {
+				val entryName = resolveEpubEntry(uri.fragment.orEmpty(), source)
+				return synchronized(lock) {
+					val archive = archives[File(uri.schemeSpecificPart)] ?: return null
+					val entry = archive.getEntry(entryName)
+						?: archive.getEntry(entryName.removePrefix("/"))
+						?: return null
+					archive.getInputStream(entry).use { it.readBytes() }
+				}
 			}
-		}
-
-		override fun resolveExternalLink(chapterUrl: String, href: String): String? =
-			href.takeIf { it.startsWith("http://", true) || it.startsWith("https://", true) }
-
-		override fun close() {
-			synchronized(lock) { archives.values.forEach(ZipFile::close) }
-		}
-
-		private fun resolveEpubEntry(chapterEntry: String, source: String): String {
-			val cleanSource = source.substringBefore('#').substringBefore('?').replace(" ", "%20")
-			return URI("/${chapterEntry.replace('\\', '/')}").resolve(cleanSource).normalize().path.removePrefix("/")
-		}
-	}
-
-	/**
-	 * Chapters fetched from a novel plugin. Images are never downloaded here — the src is handed back
-	 * as an absolute url so coil loads it through the source's own headers, exactly like a cover.
-	 */
-	private class RemoteContentSource(
-		private val repository: MangaRepository,
-		chapters: List<MangaChapter>,
-	) : ChapterContent {
-
-		private val byUrl = chapters.associateBy { it.url }
-
-		// runBlocking is safe: ChapterContent.loadHtml is documented blocking and every caller
-		// already hops to Dispatchers.IO first.
-		override fun loadHtml(url: String): String = runBlocking {
-			val chapter = byUrl[url] ?: return@runBlocking ""
-			repository.getChapterHtml(chapter).orEmpty()
-		}
-
-		// Inline images in prose are often site-relative, so they get resolved against the source's
-		// own site — the plugin's for an LNReader novel, the extension's base url for a Tsundoku one.
-		override fun imageData(chapterUrl: String, source: String): Any? =
-			when (val novelSource = repository.source.unwrap()) {
+			if (repository == null) return null
+			return when (val novelSource = repository.source.unwrap()) {
 				is LnMangaSource -> novelSource.absoluteUrl(source)
 				is MihonMangaSource -> (novelSource.catalogueSource as? HttpSource)
 					?.let { resolveAgainst(it.baseUrl, source) }
-
 				else -> null
 			}
+		}
 
-		override fun resolveExternalLink(chapterUrl: String, href: String): String? =
-			when (val novelSource = repository.source.unwrap()) {
+		override fun resolveExternalLink(chapterUrl: String, href: String): String? {
+			val uri = chapterUrl.toUri()
+			if (uri.isZipUri()) {
+				return href.takeIf { it.startsWith("http://", true) || it.startsWith("https://", true) }
+			}
+			if (repository == null) return null
+			return when (val novelSource = repository.source.unwrap()) {
 				is LnMangaSource -> novelSource.absoluteUrl(href)
 				is MihonMangaSource -> (novelSource.catalogueSource as? HttpSource)
 					?.let { resolveAgainst(it.baseUrl, href) }
 				else -> null
 			}
+		}
+
+		override fun close() {
+			synchronized(lock) { archives.values.forEach(ZipFile::close) }
+		}
 
 		private fun resolveAgainst(baseUrl: String, value: String): String = when {
 			value.startsWith("http://") || value.startsWith("https://") -> value
@@ -1688,7 +1869,10 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 			else -> baseUrl.trimEnd('/') + "/" + value.trimStart('/')
 		}
 
-		override fun close() = Unit
+		private fun resolveEpubEntry(chapterEntry: String, source: String): String {
+			val cleanSource = source.substringBefore('#').substringBefore('?').replace(" ", "%20")
+			return URI("/${chapterEntry.replace('\\', '/')}").resolve(cleanSource).normalize().path.removePrefix("/")
+		}
 	}
 
 	private data class PreparedBook(val chapters: List<NativeChapter>, val content: ChapterContent)
@@ -1737,9 +1921,28 @@ class EpubReaderFragment : BaseReaderFragment<FragmentReaderEpubBinding>() {
 		private const val MAX_MEANINGS = 4
 		private const val MAX_DEFINITIONS_PER_MEANING = 3
 		private const val MAX_SYNONYMS = 8
+
+		/** Runs of letters/digits containing at least one letter - text-vide's word pattern. */
+		private val BIONIC_WORD = Regex("[\\p{L}\\p{Nd}]*\\p{L}[\\p{L}\\p{Nd}]*")
+		private val BIONIC_UNSPACED_SCRIPT = Regex(
+			"[\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}\\p{IsHangul}\\p{IsThai}\\p{IsLao}\\p{IsKhmer}]",
+		)
+
 		private val WORD_PATTERN = Regex("[\\p{L}\\p{M}]+(?:['’\\-][\\p{L}\\p{M}]+)*")
 		private val EMPTY_CHAPTER_TEXT = SpannedString("\u2014")
 	}
+}
+
+/**
+ * How many leading letters of a word bionic reading bolds: the word length minus the index of the
+ * first boundary it fits into, or minus the table size when it is longer than every boundary.
+ * The table is text-vide's, at the default fixation point, so output matches other readers.
+ */
+internal fun bionicPrefixLength(wordLength: Int): Int {
+	val bounds = intArrayOf(0, 4, 12, 17, 24, 29, 35, 42, 48)
+	val boundary = bounds.indexOfFirst { wordLength <= it }
+	val prefix = if (boundary < 0) wordLength - bounds.size else wordLength - boundary
+	return prefix.coerceIn(0, wordLength)
 }
 
 internal fun resolveChapterLink(currentUrl: String, href: String, chapterUrls: List<String>): Int? {

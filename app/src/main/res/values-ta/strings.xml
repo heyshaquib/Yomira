@@ -460,7 +460,6 @@
     <string name="periodic_backups_enable">அவ்வப்போது காப்புப்பிரதிகளை இயக்கவும்</string>
     <string name="backups_output_directory">காப்புப்பிரதிகள் வெளியீட்டு அடைவு</string>
     <string name="last_successful_backup">கடைசி வெற்றிகரமான காப்புப்பிரதி: %s</string>
-    <string name="speed_value">எக்ச்%.1f எஃப்</string>
     <string name="content_type_manga">மங்கா</string>
     <string name="content_type_hentai">என்டாய்</string>
     <string name="content_type_comics">காமிக்ச்</string>
@@ -649,7 +648,6 @@
     <string name="chapter_volume_number">தொகுதி %1$s அத்தியாயம் %2$s</string>
     <string name="chapter_number">அத்தியாயம் %s</string>
     <string name="unnamed_chapter">பெயரிடப்படாத அத்தியாயம்</string>
-    <string name="simple">எளிமையானது</string>
     <string name="reader_controls_in_bottom_bar">கீழ் பட்டியில் வாசகர் கட்டுப்பாடுகள்</string>
     <string name="chapters_and_pages">அத்தியாயங்கள் மற்றும் பக்கங்கள்</string>
     <string name="pages_slider">பக்க சுவிட்ச் ஸ்லைடர்</string>

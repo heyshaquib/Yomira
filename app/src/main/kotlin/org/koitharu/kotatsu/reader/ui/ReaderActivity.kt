@@ -11,7 +11,9 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.activity.viewModels
+import androidx.appcompat.widget.PopupMenu
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
@@ -22,8 +24,11 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.transition.ChangeBounds
 import androidx.transition.Fade
 import androidx.transition.Slide
+import androidx.transition.Transition
+import androidx.transition.TransitionListenerAdapter
 import androidx.transition.TransitionManager
 import androidx.transition.TransitionSet
 import androidx.window.layout.FoldingFeature
@@ -78,6 +83,8 @@ import org.koitharu.kotatsu.reader.domain.UpscaleEffect
 import org.koitharu.kotatsu.reader.ui.upscale.UpscalePreviewDialog
 import org.koitharu.kotatsu.reader.ui.config.ReaderConfigSheet
 import org.koitharu.kotatsu.reader.ui.epub.EpubReaderFragment
+import org.koitharu.kotatsu.reader.ui.tts.ReaderTts
+import org.koitharu.kotatsu.reader.ui.tts.ReaderTtsService
 import org.koitharu.kotatsu.reader.ui.pager.ReaderPage
 import org.koitharu.kotatsu.reader.ui.pager.ReaderUiState
 import org.koitharu.kotatsu.reader.ui.tapgrid.TapGridDispatcher
@@ -120,10 +127,15 @@ class ReaderActivity :
         get() = readerManager.currentMode
 
     private lateinit var scrollTimer: ScrollTimer
+
+    @Inject
+    lateinit var tts: ReaderTts
     private lateinit var pageSaveHelper: PageSaveHelper
     private lateinit var touchHelper: TapGridDispatcher
     private lateinit var controlDelegate: ReaderControlDelegate
     private var gestureInsets: Insets = Insets.NONE
+    private var dockedToolbarHeight = 0
+    private var isPanelOffsetAnimating = false
     // Set when a long-press action consumed the gesture; the remainder of the touch stream is
     // delivered to the content as ACTION_CANCEL so the pager doesn't scroll under the opened sheet.
     private var isTouchCancelled = false
@@ -155,6 +167,15 @@ class ReaderActivity :
         }
         viewBinding.timerControl.onVisibilityChangeListener = this
         viewBinding.timerControl.attach(scrollTimer, this)
+        viewBinding.ttsControl.onVisibilityChangeListener = this
+        viewBinding.ttsControl.attach(tts, this)
+        tts.isPlaying.observe(this) {
+            updateScrollTimerButton()
+            if (it) {
+                scrollTimer.setActive(false)
+                ReaderTtsService.start(this, viewModel.getMangaOrNull()?.title.orEmpty())
+            }
+        }
         if (resources.getBoolean(R.bool.is_tablet)) {
             viewBinding.timerControl.updateLayoutParams<CoordinatorLayout.LayoutParams> {
                 topMargin = marginEnd + getThemeDimensionPixelOffset(appcompatR.attr.actionBarSize)
@@ -224,6 +245,13 @@ class ReaderActivity :
         )
         UpscaleEffect.activePages.map { it.isNotEmpty() }.distinctUntilChanged()
             .observe(this, MenuInvalidator(this))
+        // Long-pressing the top bar offers the chapter currently being read in the built-in
+        // browser — the same action the chapters list already offers on a selected chapter.
+        viewBinding.toolbar.setOnLongClickListener(::onToolbarLongClick)
+        viewModel.onOpenChapterInBrowser.observeEvent(this) { url ->
+            val manga = viewModel.getMangaOrNull()
+            router.openBrowser(url = url, source = manga?.source, title = manga?.title)
+        }
 
         observeWindowLayout()
 
@@ -254,6 +282,15 @@ class ReaderActivity :
         viewModel.onStop()
     }
 
+    override fun onDestroy() {
+        // Backgrounding the reader keeps speaking; leaving it does not. A rotation is neither.
+        if (isFinishing) {
+            tts.stop()
+            ReaderTtsService.stop(this)
+        }
+        super.onDestroy()
+    }
+
     override fun onProvideAssistContent(outContent: AssistContent) {
         super.onProvideAssistContent(outContent)
         viewModel.getMangaOrNull()?.publicUrl?.toUriOrNull()?.let { outContent.webUri = it }
@@ -267,7 +304,11 @@ class ReaderActivity :
     }
 
     override fun onVisibilityChanged(v: View, visibility: Int) {
+        // Set the offset before the panel's own slide captures its end value, so it slides in at
+        // the right height instead of appearing at the bottom edge and jumping up afterwards.
+        updateTimerPanelOffset(animate = false)
         updateScrollTimerButton()
+        (readerManager.currentReader as? EpubReaderFragment)?.setTtsPickMode(viewBinding.ttsControl.isVisible)
     }
 
     override fun onZoomIn() {
@@ -280,7 +321,14 @@ class ReaderActivity :
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.button_timer -> onScrollTimerClick(isLongClick = false)
+            // One floating button for both: whichever of the two is running owns it.
+            R.id.button_timer -> if (tts.isPlaying.value) {
+                viewBinding.ttsControl.showOrHide()
+            } else if (readerManager.isEpub && settings.isReaderTtsFabVisible) {
+                onTextToSpeechClick()
+            } else {
+                onScrollTimerClick(isLongClick = false)
+            }
         }
     }
 
@@ -289,6 +337,8 @@ class ReaderActivity :
             return
         }
         readerManager.isEpub = viewModel.getMangaOrNull()?.isEpub == true
+        viewBinding.timerControl.setEpubReader(readerManager.isEpub)
+        updateScrollTimerButton()
         if (readerManager.currentMode != mode) {
             readerManager.replace(mode)
         }
@@ -501,6 +551,7 @@ class ReaderActivity :
 
     private fun setUiIsVisible(isUiVisible: Boolean) {
         if (viewBinding.appbarTop.isVisible != isUiVisible) {
+            var isAnimated = false
             if (isAnimationsEnabled) {
                 val transition = TransitionSet()
                     .setOrdering(TransitionSet.ORDERING_TOGETHER)
@@ -509,7 +560,21 @@ class ReaderActivity :
                 viewBinding.toolbarDocked?.let {
                     transition.addTransition(Slide(Gravity.BOTTOM).addTarget(it))
                 }
+                // The autoscroll panel dodges the docked toolbar's inset edge, so showing the
+                // toolbar re-lays it out. Without a ChangeBounds target for it that re-layout
+                // lands in one frame — the panel snaps to its new spot and the whole bottom
+                // area flashes before the toolbar finishes sliding in.
+                transition.addTransition(ChangeBounds().addTarget(viewBinding.timerControl))
+                // Re-dispatching insets changes the reader's own padding and the toolbar margins,
+                // which forces a full re-layout of the page view *while* the bars are sliding —
+                // that is the stutter. Hold it back until the slide is done.
+                transition.addListener(object : TransitionListenerAdapter() {
+                    override fun onTransitionEnd(transition: Transition) {
+                        viewBinding.root.requestApplyInsets()
+                    }
+                })
                 TransitionManager.beginDelayedTransition(viewBinding.root, transition)
+                isAnimated = true
             }
             val isFullscreen = settings.isReaderFullscreenEnabled
             viewBinding.appbarTop.isVisible = isUiVisible
@@ -517,8 +582,11 @@ class ReaderActivity :
             viewBinding.infoBar.isGone = isUiVisible || (!viewModel.isInfoBarEnabled.value)
             viewBinding.infoBar.isTimeVisible = isFullscreen
             updateScrollTimerButton()
+            updateTimerPanelOffset(animate = isAnimated)
             systemUiController.setSystemUiVisible(isUiVisible || !isFullscreen)
-            viewBinding.root.requestApplyInsets()
+            if (!isAnimated) {
+                viewBinding.root.requestApplyInsets()
+            }
         }
     }
 
@@ -540,6 +608,16 @@ class ReaderActivity :
             bottomMargin = tappableInsets.bottom
             rightMargin = systemBars.right
             leftMargin = systemBars.left
+        }
+        viewBinding.toolbarDocked?.let { docked ->
+            dockedToolbarHeight = maxOf(dockedToolbarHeight, docked.height)
+            val panelMargin = tappableInsets.bottom + resources.getDimensionPixelSize(R.dimen.screen_padding)
+            viewBinding.timerControl.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                if (bottomMargin != panelMargin) {
+                    bottomMargin = panelMargin
+                }
+            }
+            updateTimerPanelOffset(animate = false)
         }
         // The info bar must hug the real top edge: BaseActivity inflates the top inset with the
         // hidden status bar's height (so toolbars keep their place), but this bar replaces the
@@ -602,10 +680,21 @@ class ReaderActivity :
     }
 
     override fun onScrollTimerClick(isLongClick: Boolean) {
+        viewBinding.ttsControl.hide()
         if (isLongClick) {
             scrollTimer.setActive(!scrollTimer.isActive.value)
         } else {
             viewBinding.timerControl.showOrHide()
+        }
+    }
+
+    override fun onTextToSpeechClick() {
+        val reader = readerManager.currentReader as? EpubReaderFragment ?: return
+        settings.isReaderTtsFabVisible = true
+        viewBinding.timerControl.hide()
+        viewBinding.ttsControl.show()
+        if (!tts.isAttached) {
+            reader.startTts()
         }
     }
 
@@ -644,6 +733,21 @@ class ReaderActivity :
         val page = pages?.getOrNull(index) ?: return
         val chapterId = viewModel.getCurrentState()?.chapterId ?: return
         onPageSelected(ReaderPage(page, index, chapterId))
+    }
+
+    private fun onToolbarLongClick(view: View): Boolean {
+        val chapterId = viewModel.getCurrentState()?.chapterId ?: return false
+        view.hapticFeedback(HapticEffect.LONG_PRESS)
+        PopupMenu(view.context, view, Gravity.START).run {
+            inflate(R.menu.opt_browser)
+            setOnMenuItemClickListener { item ->
+                (item.itemId == R.id.action_browser).also { isHandled ->
+                    if (isHandled) viewModel.openChapterInBrowser(chapterId)
+                }
+            }
+            show()
+        }
+        return true
     }
 
     private fun onReaderBarChanged(isBarEnabled: Boolean) {
@@ -686,16 +790,76 @@ class ReaderActivity :
         viewBinding.actionsView.isPrevEnabled = uiState.hasPreviousChapter()
     }
 
+    /**
+     * Keeps the autoscroll panel just above the docked toolbar. CoordinatorLayout's
+     * `dodgeInsetEdges` used to do this, but dodging is resolved in a single layout pass — it
+     * teleported the panel instead of animating it. Driving translationY ourselves lets it glide
+     * in step with the toolbar's slide.
+     */
+    private fun updateTimerPanelOffset(animate: Boolean) {
+        // Tablet layouts anchor the panel to the top app bar, so there is nothing to dodge.
+        if (viewBinding.toolbarDocked == null) return
+        // The floating button rides along: with the dock up it would otherwise sit behind it.
+        val panels = listOfNotNull<View>(viewBinding.timerControl, viewBinding.ttsControl, viewBinding.buttonTimer)
+        // Hiding the system bars makes insets settle over several frames, and every one of those
+        // callbacks lands here. Without this guard they snap translationY straight to the target
+        // mid-flight, so the panel appears to jump while the toolbar is still sliding.
+        if (!animate && isPanelOffsetAnimating) return
+        val target = if (viewBinding.appbarTop.isVisible) {
+            -(dockedToolbarHeight + resources.getDimensionPixelSize(R.dimen.screen_padding)).toFloat()
+        } else {
+            0f
+        }
+        panels.forEach { it.animate().cancel() }
+        if (animate && isAnimationsEnabled) {
+            isPanelOffsetAnimating = true
+            panels.forEach { panel ->
+                panel.animate()
+                    .translationY(target)
+                    .setDuration(PANEL_SLIDE_DURATION)
+                    // same curve the toolbar's Slide uses, so the two travel as one
+                    .setInterpolator(AccelerateDecelerateInterpolator())
+                    .withEndAction { isPanelOffsetAnimating = false }
+                    .start()
+            }
+        } else {
+            isPanelOffsetAnimating = false
+            panels.forEach { it.translationY = target }
+        }
+    }
+
     private fun updateScrollTimerButton() {
         val button = viewBinding.buttonTimer ?: return
-        val isButtonVisible = scrollTimer.isActive.value
-            && settings.isReaderAutoscrollFabVisible
-            && !viewBinding.appbarTop.isVisible
+        // The TTS face of the FAB is sticky: once speech has been started it stays offered on every
+        // novel until it is explicitly stopped, so resuming it doesn't mean digging through the menu.
+        val isTts = tts.isPlaying.value ||
+            (readerManager.isEpub && settings.isReaderTtsFabVisible)
+        val isButtonVisible = (scrollTimer.isActive.value || isTts)
+            && (if (isTts) true else settings.isReaderAutoscrollFabVisible)
             && !viewBinding.timerControl.isVisible
-        if (button.isVisible != isButtonVisible) {
-            val transition = Fade().addTarget(button)
-            TransitionManager.beginDelayedTransition(viewBinding.root, transition)
+            && !viewBinding.ttsControl.isVisible
+        button.setIconResource(if (isTts) R.drawable.ic_voice_over else R.drawable.ic_timelapse)
+        if (button.isVisible == isButtonVisible) {
+            return
+        }
+        if (!isAnimationsEnabled) {
             button.isVisible = isButtonVisible
+            return
+        }
+        // Fade the FAB with its own animator instead of staging another delayed transition:
+        // this runs from inside the panel-slide and toolbar-slide code paths, and a second
+        // beginDelayedTransition() on the same scene root cancels the one the caller just
+        // queued — which is what made the bottom area flash instead of animating.
+        button.animate().cancel()
+        if (isButtonVisible) {
+            button.alpha = 0f
+            button.isVisible = true
+            button.animate().alpha(1f).setDuration(FAB_FADE_DURATION).start()
+        } else {
+            button.animate().alpha(0f).setDuration(FAB_FADE_DURATION).withEndAction {
+                button.isVisible = false
+                button.alpha = 1f
+            }.start()
         }
     }
 
@@ -728,6 +892,9 @@ class ReaderActivity :
     companion object {
 
         private const val TOAST_DURATION = 2000L
+        private const val FAB_FADE_DURATION = 200L
+        private const val PANEL_SLIDE_DURATION = 300L
+
 		private const val EPUB_MODE_SCROLL = "scroll"
 		private const val EPUB_MODE_PAGED_RTL = "paged_rtl"
 

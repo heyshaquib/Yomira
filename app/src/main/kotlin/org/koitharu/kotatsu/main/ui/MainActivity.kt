@@ -1,9 +1,6 @@
 package org.koitharu.kotatsu.main.ui
 
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -13,7 +10,6 @@ import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.ClickableSpan
-import android.text.style.StyleSpan
 import androidx.activity.result.contract.ActivityResultContracts
 import android.view.MotionEvent
 import android.view.View
@@ -22,7 +18,6 @@ import android.widget.LinearLayout
 import androidx.activity.viewModels
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.Insets
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuProvider
@@ -46,7 +41,6 @@ import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
 import com.google.android.material.appbar.AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
-import com.google.android.material.R as materialR
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.search.SearchView
@@ -72,6 +66,7 @@ import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
 import org.koitharu.kotatsu.core.prefs.NavItem
 import org.koitharu.kotatsu.core.ui.BaseActivity
+import org.koitharu.kotatsu.core.ui.text.ChipBackgroundSpan
 import org.koitharu.kotatsu.core.ui.util.FadingAppbarMediator
 import org.koitharu.kotatsu.core.ui.util.StatusBarScrim
 import org.koitharu.kotatsu.core.ui.widgets.SlidingBottomNavigationView
@@ -148,11 +143,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			compoundDrawablePadding = resources.getDimensionPixelOffset(R.dimen.margin_small)
 		}
 
-		viewBinding.statusBarScrim.background = statusBarScrimDrawable(this)
+		viewBinding.statusBarScrim.background = StatusBarScrim.drawable(this)
 
 		viewBinding.fab?.setOnClickListener(this)
 		viewBinding.navRail?.headerView?.findViewById<View>(R.id.railFab)?.setOnClickListener(this)
 		viewBinding.bottomNav?.setOnContinueClickListener { viewModel.openLastReader() }
+		viewBinding.bottomNav?.setOnContinueLongClickListener { viewModel.openLastDetails() }
 		viewBinding.buttonOverflow.setOnClickListener(this::showMainOverflowMenu)
 		viewBinding.buttonSettings.setOnClickListener {
 			router.openSettings()
@@ -200,6 +196,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 		}
 
 		viewModel.onOpenReader.observeEvent(this, this::onOpenReader)
+		viewModel.onOpenLastDetails.observeEvent(this) { router.openDetails(it) }
 		viewModel.onError.observeEvent(this, SnackbarErrorObserver(viewBinding.container, null))
 		viewModel.isLoading.observe(this, this::onLoadingStateChanged)
 		viewModel.isResumeEnabled.observe(this, this::onResumeEnabledChanged)
@@ -615,6 +612,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 			hintText = "$scopeLabel · $originalHint"
 			scopeStart = 0
 		}
+		val density = resources.displayMetrics.density
 		searchView.hint = SpannableString(hintText).apply {
 			setSpan(
 				object : ClickableSpan() {
@@ -624,10 +622,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 					}
 
 					override fun updateDrawState(ds: TextPaint) {
-						ds.color = MaterialColors.getColor(
-							searchView.editText,
-							androidx.appcompat.R.attr.colorPrimary,
-						)
 						ds.isUnderlineText = false
 					}
 				},
@@ -635,8 +629,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 				scopeStart + scopeLabel.length,
 				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
 			)
+			// Boxed like a chip: the scope is a control, not part of the sentence, and users miss it otherwise.
 			setSpan(
-				StyleSpan(Typeface.BOLD),
+				ChipBackgroundSpan(
+					backgroundColor = MaterialColors.getColor(
+						searchView.editText,
+						com.google.android.material.R.attr.colorSecondaryContainer,
+					),
+					textColor = MaterialColors.getColor(
+						searchView.editText,
+						com.google.android.material.R.attr.colorOnSecondaryContainer,
+					),
+					paddingHorizontal = 6f * density,
+					paddingVertical = 2f * density,
+					cornerRadius = 8f * density,
+				),
 				scopeStart,
 				scopeStart + scopeLabel.length,
 				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
@@ -766,18 +773,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>(), AppBarOwner, BottomNav
 
 		private const val FAB_SHRINK_DELAY_MS = 1500L
 		private const val ACTION_MODE_TOP_BAR_FADE_DURATION_MS = 150L
-	}
-}
-
-/** See [StatusBarScrim] — the details screen draws the same curve in Compose. */
-private fun statusBarScrimDrawable(context: android.content.Context): GradientDrawable {
-	val surface = MaterialColors.getColor(context, materialR.attr.colorSurface, Color.TRANSPARENT)
-	val alphas = StatusBarScrim.alphas
-	return GradientDrawable(
-		GradientDrawable.Orientation.TOP_BOTTOM,
-		IntArray(alphas.size) { ColorUtils.setAlphaComponent(surface, alphas[it].roundToInt()) },
-	).apply {
-		setDither(true) // 8-bit alpha over a long ramp bands without it
 	}
 }
 

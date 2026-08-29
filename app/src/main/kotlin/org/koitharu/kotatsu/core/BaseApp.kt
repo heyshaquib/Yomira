@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.core
 
 import android.app.Application
-import android.app.DownloadManager
 import android.content.Context
 import android.content.ComponentName
 import android.content.pm.PackageManager
@@ -25,6 +24,7 @@ import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.logs.AppLogger
 import org.koitharu.kotatsu.core.os.AppValidator
 import org.koitharu.kotatsu.core.os.RomCompat
+import org.koitharu.kotatsu.settings.sources.catalog.EXTENSION_APK_PREFIX
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.dialog.CrashDialogActivity
 import org.koitharu.kotatsu.core.util.ext.processLifecycleScope
@@ -33,6 +33,7 @@ import org.koitharu.kotatsu.local.data.index.LocalMangaIndex
 import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.settings.work.WorkScheduleManager
+import org.koitharu.kotatsu.widget.common.WidgetThemeWatcher
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -70,6 +71,8 @@ open class BaseApp : Application(), Configuration.Provider {
 	@LocalStorageChanges
 	lateinit var localStorageChanges: MutableSharedFlow<LocalManga?>
 
+	private val widgetThemeWatcher by lazy { WidgetThemeWatcher(this) }
+
 	override val workManagerConfiguration: Configuration
 		get() = Configuration.Builder()
 			.setWorkerFactory(workerFactory)
@@ -91,6 +94,7 @@ open class BaseApp : Application(), Configuration.Provider {
 			)
 		}
 		AppCompatDelegate.setDefaultNightMode(settings.theme)
+		settings.subscribe(widgetThemeWatcher)
 		appLogger.setEnabled(settings.isVerboseLoggingEnabled)
 		// Keep default platform security provider.
 		setupActivityLifecycleCallbacks()
@@ -138,12 +142,12 @@ open class BaseApp : Application(), Configuration.Provider {
 
 	private fun cleanupDownloadedExtensionApks() {
 		runCatching {
-			val pendingIds = settings.pendingExtensionDownloads.toLongArray()
-			if (pendingIds.isNotEmpty()) {
-				val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-				downloadManager.remove(*pendingIds)
+			cacheDir.listFiles()?.forEach { file ->
+				if (file.isFile && file.name.startsWith(EXTENSION_APK_PREFIX)) {
+					file.delete()
+				}
 			}
-			settings.pendingExtensionDownloads = emptySet()
+			// Older builds downloaded extensions into the external files dir; drop the leftovers.
 			getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
 				?.listFiles()
 				?.forEach { file ->

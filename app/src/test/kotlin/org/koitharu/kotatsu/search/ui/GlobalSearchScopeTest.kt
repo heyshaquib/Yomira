@@ -54,17 +54,21 @@ class GlobalSearchScopeTest {
 	}
 
 	@Test
-	fun `hide empty sources defaults on and persists later user changes`() {
+	fun `search filters default off and persist later user changes`() {
 		val settings = source("core/prefs/AppSettings.kt")
 		val search = source("search/ui/multi/SearchViewModel.kt")
 		val menu = source("search/ui/multi/SearchMenuProvider.kt")
 
-		assertTrue(settings.contains("varisSearchHideEmpty:Boolean"))
-		assertTrue(settings.contains("prefs.getBoolean(KEY_SEARCH_HIDE_EMPTY,true)"))
-		assertTrue(settings.contains("putBoolean(KEY_SEARCH_HIDE_EMPTY,value)"))
-		assertTrue(search.contains("MutableStateFlow(settings.isSearchHideEmpty)"))
-		assertTrue(search.contains("settings.isSearchHideEmpty=value"))
-		assertTrue(menu.contains("action_filter_hide_empty)?.isChecked=viewModel.isHideEmpty"))
+		assertTrue(settings.contains("varisSearchPinnedOnly:Boolean"))
+		assertTrue(settings.contains("varisSearchLocalOnly:Boolean"))
+		assertTrue(settings.contains("prefs.getBoolean(KEY_SEARCH_PINNED_ONLY,false)"))
+		assertTrue(settings.contains("prefs.getBoolean(KEY_SEARCH_LOCAL_ONLY,false)"))
+		assertTrue(settings.contains("putBoolean(KEY_SEARCH_PINNED_ONLY,value)"))
+		assertTrue(settings.contains("putBoolean(KEY_SEARCH_LOCAL_ONLY,value)"))
+		assertTrue(search.contains("MutableStateFlow(settings.isSearchPinnedOnly)"))
+		assertTrue(search.contains("MutableStateFlow(settings.isSearchLocalOnly)"))
+		assertTrue(menu.contains("action_filter_pinned_only)?.run{isChecked=viewModel.isPinnedOnly"))
+		assertTrue(menu.contains("action_filter_local_only)?.isChecked=viewModel.isLocalOnly"))
 	}
 
 	private fun resource(relativePath: String): String {

@@ -1,12 +1,10 @@
 package org.koitharu.kotatsu.widget.common
 
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import androidx.room.InvalidationTracker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.koitharu.kotatsu.widget.continuereading.ContinueReadingWidget
+import org.koitharu.kotatsu.widget.history.HistoryWidget
 import org.koitharu.kotatsu.widget.stats.StatsWidget
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,21 +23,12 @@ class WidgetRefreshObserver @Inject constructor(
 
 	override fun onInvalidated(tables: Set<String>) {
 		if (HISTORY_TABLES.any { it in tables }) {
-			nudge(ContinueReadingWidget::class.java)
+			nudgeWidgets(context, ContinueReadingWidget::class.java)
+			nudgeWidgets(context, HistoryWidget::class.java)
 		}
 		if (STATS_TABLES.any { it in tables }) {
-			nudge(StatsWidget::class.java)
+			nudgeWidgets(context, StatsWidget::class.java)
 		}
-	}
-
-	private fun nudge(providerClass: Class<*>) {
-		val mgr = AppWidgetManager.getInstance(context)
-		val ids = mgr.getAppWidgetIds(ComponentName(context, providerClass))
-		if (ids.isEmpty()) return
-		val broadcast = Intent(context, providerClass)
-			.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
-			.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
-		context.sendBroadcast(broadcast)
 	}
 
 	companion object {

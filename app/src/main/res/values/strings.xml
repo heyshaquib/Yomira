@@ -21,6 +21,8 @@
     <string name="loading_">Loading...</string>
     <string name="computing_">Computing...</string>
     <string name="chapter_d_of_d">Chapter %1$d of %2$d</string>
+    <string name="chapters_read_d">%1$d chapters read</string>
+    <string name="chapters_read_d_of_d">%1$d of %2$d chapters read</string>
     <string name="close">Close</string>
     <string name="try_again">Try again</string>
     <!-- Should be short -->
@@ -86,7 +88,7 @@
     <string name="search_on_s">Search on %s</string>
     <string name="delete_manga">Delete manga</string>
     <string name="text_delete_local_manga">Permanently delete \"%s\" from device?</string>
-    <string name="reader_settings">Reader settings</string>
+    <string name="reader_settings">Reading</string>
     <string name="switch_pages">Switch pages</string>
     <string name="_continue">Continue</string>
     <string name="continue_reading">Continue reading</string>
@@ -270,7 +272,7 @@
     <string name="no_filters_available">This source has no filters</string>
     <string name="enter_name">Enter name</string>
     <string name="pinned_sources_only">Pinned sources only</string>
-    <string name="hide_empty_sources">Hide empty sources</string>
+    <string name="local_library_only">Local library only</string>
     <string name="never">Never</string>
     <string name="only_using_wifi">Only on Wi-Fi</string>
     <string name="always">Always</string>
@@ -523,6 +525,7 @@
 	<string name="epub_align_right">Right</string>
 	<string name="epub_align_justified">Justified</string>
 	<string name="epub_publisher_style">Use book formatting</string>
+	<string name="epub_bionic_reading">Bionic reading</string>
 	<string name="epub_publisher_style_disabled_note">Turn off book formatting to use the disabled text options.</string>
 	<string name="epub_search_book">Search book</string>
 	<string name="export_epub">Export as EPUB</string>
@@ -549,7 +552,9 @@
 	<string name="epub_untitled_chapter">Untitled chapter</string>
 	<string name="epub_text_tab">Text</string>
 	<string name="epub_reading_tab">Reading</string>
+	<string name="epub_tools_tab">Tools</string>
     <string name="speed">Speed</string>
+    <string name="interval">Interval</string>
     <string name="show_on_shelf">Show on the Shelf</string>
     <string name="find_similar">Find similar</string>
     <string name="ignore_ssl_errors">Ignore SSL errors</string>
@@ -659,7 +664,6 @@
     <string name="periodic_backups_enable">Enable periodic backups</string>
     <string name="backups_output_directory">Backups output directory</string>
     <string name="last_successful_backup">Last successful backup: %s</string>
-    <string name="speed_value">x%.1f</string>
     <string name="lock_screen_rotation">Lock screen rotation</string>
     <string name="content_type_manga">Manga</string>
     <string name="content_type_hentai">Hentai</string>
@@ -845,6 +849,12 @@
     <string name="delete_read_chapters_summary">Delete chapters you have already read from local storage to free up space</string>
     <string name="delete_read_chapters_prompt">This will permanently delete all chapters marked as read from your local storage. You can re-download it later, but the imported chapters may be lost forever</string>
     <string name="delete_read_chapters_auto">Delete read chapters automatically</string>
+    <string name="delete_read_chapters_keep">Safety margin</string>
+    <string name="delete_read_chapters_keep_immediate">A chapter is deleted as soon as you open the next one</string>
+    <plurals name="delete_read_chapters_keep_summary">
+        <item quantity="one">Keeps %d chapter behind your reading position</item>
+        <item quantity="other">Keeps %d chapters behind your reading position</item>
+    </plurals>
     <string name="runs_on_app_start">Runs when the application starts</string>
     <string name="order_oldest">Oldest</string>
     <string name="long_ago_read">Long time ago read</string>
@@ -1071,7 +1081,7 @@
     <string name="screen_rotation_unlocked">Screen rotation has been unlocked</string>
     <string name="badges_in_lists">Badges in lists</string>
     <string name="search_everywhere">Search everywhere</string>
-    <string name="simple">Simple</string>
+    <string name="search_kind_default">Default</string>
     <string name="global_search">Global search</string>
     <string name="chapter_volume_number">Vol %1$s Chapter %2$s</string>
     <string name="chapter_number">Chapter %s</string>
@@ -1208,4 +1218,16 @@
     <string name="smart_update_skip_completed">Skipped: completed</string>
     <string name="smart_update_skip_unstarted">Skipped: not started</string>
     <string name="smart_update_skip_unread">Skipped: unread chapters</string>
+    <string name="text_to_speech">Text to speech</string>
+    <string name="tts_playing">Playing</string>
+    <string name="tts_paused">Paused</string>
+    <string name="tts_next_sentence">Next sentence</string>
+    <string name="tts_previous_sentence">Previous sentence</string>
+    <string name="tts_voice">Voice</string>
+    <string name="tts_tap_hint">Tap any paragraph to read from there</string>
+    <string name="tts_pitch">Pitch</string>
+    <string name="tts_speed_value">%1$.2fx</string>
+    <string name="tts_voice_default">Default</string>
+    <string name="tts_unavailable">No text-to-speech engine is available</string>
+    <string name="stop">Stop</string>
 </resources>

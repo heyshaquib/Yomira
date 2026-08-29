@@ -7,6 +7,7 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.collection.ArraySet
 import androidx.core.content.edit
@@ -289,6 +290,24 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getString(KEY_EPUB_READING_MODE, "scroll") ?: "scroll"
 		set(value) = prefs.edit { putString(KEY_EPUB_READING_MODE, value) }
 
+	/** Speech rate for the novel text-to-speech, 0.25f..3f where 1f is the engine default. */
+	var epubTtsSpeed: Float
+		get() = prefs.getFloat(KEY_EPUB_TTS_SPEED, 1f).coerceIn(0.25f, 3f)
+		set(value) = prefs.edit { putFloat(KEY_EPUB_TTS_SPEED, value) }
+
+	/** Pitch for the novel text-to-speech, 0.5f..2f where 1f is the engine default. */
+	var epubTtsPitch: Float
+		get() = prefs.getFloat(KEY_EPUB_TTS_PITCH, 1f).coerceIn(0.5f, 2f)
+		set(value) = prefs.edit { putFloat(KEY_EPUB_TTS_PITCH, value) }
+
+	/**
+	 * Which of the offered voices is selected, as an index rather than a name: the offer is the best
+	 * few voices of whatever language is being read, so the same slot keeps working in every book.
+	 */
+	var epubTtsVoiceIndex: Int
+		get() = prefs.getInt(KEY_EPUB_TTS_VOICE, 0)
+		set(value) = prefs.edit { putInt(KEY_EPUB_TTS_VOICE, value) }
+
 	var isEpubPagedTapGesturesEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_PAGED_TAP_GESTURES, false)
 		set(value) = prefs.edit { putBoolean(KEY_EPUB_PAGED_TAP_GESTURES, value) }
@@ -296,6 +315,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	var isEpubPublisherStyleEnabled: Boolean
 		get() = prefs.getBoolean(KEY_EPUB_PUBLISHER_STYLE, false)
 		set(value) = prefs.edit { putBoolean(KEY_EPUB_PUBLISHER_STYLE, value) }
+
+	var isEpubBionicReadingEnabled: Boolean
+		get() = prefs.getBoolean(KEY_EPUB_BIONIC_READING, false)
+		set(value) = prefs.edit { putBoolean(KEY_EPUB_BIONIC_READING, value) }
 
 	// "system" | "white" | "gray" | "black" | "custom" - page colors of the EPUB reader only
 	var epubTheme: String
@@ -510,14 +533,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		return Hash.sha256(salt + pin) == hash
 	}
 
-	var pendingExtensionDownloads: Set<Long>
-		get() = prefs.getStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, emptySet())
-			.orEmpty()
-			.mapNotNullToSet { it.toLongOrNull() }
-		set(value) = prefs.edit {
-			putStringSet(KEY_PENDING_EXTENSION_DOWNLOADS, value.mapToSet { it.toString() })
-		}
-
 	/**
 	 * Ids of installed novel (text) extension sources, remembered from the last extension scan.
 	 * Loading extensions needs a classloader pass, so right after launch a novel already in the
@@ -535,9 +550,13 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		get() = prefs.getBoolean(KEY_GLOBAL_SEARCH_NOVEL_SCOPE, false)
 		set(value) = prefs.edit { putBoolean(KEY_GLOBAL_SEARCH_NOVEL_SCOPE, value) }
 
-	var isSearchHideEmpty: Boolean
-		get() = prefs.getBoolean(KEY_SEARCH_HIDE_EMPTY, true)
-		set(value) = prefs.edit { putBoolean(KEY_SEARCH_HIDE_EMPTY, value) }
+	var isSearchPinnedOnly: Boolean
+		get() = prefs.getBoolean(KEY_SEARCH_PINNED_ONLY, false)
+		set(value) = prefs.edit { putBoolean(KEY_SEARCH_PINNED_ONLY, value) }
+
+	var isSearchLocalOnly: Boolean
+		get() = prefs.getBoolean(KEY_SEARCH_LOCAL_ONLY, false)
+		set(value) = prefs.edit { putBoolean(KEY_SEARCH_LOCAL_ONLY, value) }
 
 	var isShizukuInstallerEnabled: Boolean
 		get() = prefs.getBoolean(KEY_SHIZUKU_INSTALLER, false)
@@ -901,7 +920,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	@get:FloatRange(from = 0.0, to = 1.0)
 	var readerAutoscrollSpeed: Float
+		// 0 is unreachable from the slider and used to mean "never configured", which left the
+		// timer permanently disabled — fold it into the default instead.
 		get() = prefs.getFloat(KEY_READER_AUTOSCROLL_SPEED, 0f)
+			.takeIf { it > 0f }?.coerceAtMost(1f) ?: DEFAULT_AUTOSCROLL_SPEED
 		set(@FloatRange(from = 0.0, to = 1.0) value) = prefs.edit {
 			putFloat(
 				KEY_READER_AUTOSCROLL_SPEED,
@@ -909,9 +931,24 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 			)
 		}
 
+	/** Seconds a page stays on screen while autoscroll runs in the paged reader modes. */
+	@get:IntRange(from = 1, to = 10)
+	var readerAutoscrollPageDelay: Int
+		get() = prefs.getInt(KEY_READER_AUTOSCROLL_PAGE_DELAY, DEFAULT_AUTOSCROLL_PAGE_DELAY)
+			.coerceIn(1, 10)
+		set(value) = prefs.edit { putInt(KEY_READER_AUTOSCROLL_PAGE_DELAY, value.coerceIn(1, 10)) }
+
 	var isReaderAutoscrollFabVisible: Boolean
 		get() = prefs.getBoolean(KEY_READER_AUTOSCROLL_FAB, true)
 		set(value) = prefs.edit { putBoolean(KEY_READER_AUTOSCROLL_FAB, value) }
+
+	/**
+	 * Sticky "the reader wants text-to-speech" flag. Set when TTS is started, cleared only when it is
+	 * explicitly stopped, so the quick-start button survives leaving the book or the app.
+	 */
+	var isReaderTtsFabVisible: Boolean
+		get() = prefs.getBoolean(KEY_READER_TTS_FAB, false)
+		set(value) = prefs.edit { putBoolean(KEY_READER_TTS_FAB, value) }
 
 	// Page preloading is always on (no user setting): the only thing that turns it off is the system
 	// restricting our background data.
@@ -946,6 +983,13 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 
 	val isAutoLocalChaptersCleanupEnabled: Boolean
 		get() = prefs.getBoolean(KEY_CHAPTERS_CLEAR_AUTO, false)
+
+	/**
+	 * How many chapters behind the current reading position are kept when read chapters are
+	 * deleted. 0 deletes the previous chapter as soon as the next one is opened.
+	 */
+	val localChaptersCleanupKeep: Int
+		get() = prefs.getInt(KEY_CHAPTERS_CLEAR_KEEP, 2).coerceIn(0, 3)
 
 	fun isPagesCropEnabled(mode: ReaderMode): Boolean {
 		val rawValue = prefs.getStringSet(KEY_READER_CROP, emptySet())
@@ -1120,6 +1164,7 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_COOKIES_CLEAR = "cookies_clear"
 		const val KEY_CHAPTERS_CLEAR = "chapters_clear"
 		const val KEY_CHAPTERS_CLEAR_AUTO = "chapters_clear_auto"
+		const val KEY_CHAPTERS_CLEAR_KEEP = "chapters_clear_keep"
 		const val KEY_THUMBS_CACHE_CLEAR = "thumbs_cache_clear"
 		const val KEY_SEARCH_HISTORY_CLEAR = "search_history_clear"
 		const val KEY_UPDATES_FEED_CLEAR = "updates_feed_clear"
@@ -1161,7 +1206,11 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_EPUB_TEXT_ALIGN = "epub_text_align"
 		const val KEY_EPUB_READING_MODE = "epub_reading_mode"
 		const val KEY_EPUB_PAGED_TAP_GESTURES = "epub_paged_tap_gestures"
+		const val KEY_EPUB_TTS_SPEED = "epub_tts_speed"
+		const val KEY_EPUB_TTS_VOICE = "epub_tts_voice_index"
+		const val KEY_EPUB_TTS_PITCH = "epub_tts_pitch"
 		const val KEY_EPUB_PUBLISHER_STYLE = "epub_publisher_style"
+		const val KEY_EPUB_BIONIC_READING = "epub_bionic_reading"
 		const val KEY_EPUB_THEME = "epub_theme"
 		const val KEY_EPUB_CUSTOM_BACKGROUND_COLOR = "epub_custom_background_color"
 		const val KEY_EPUB_CUSTOM_TEXT_COLOR = "epub_custom_text_color"
@@ -1221,8 +1270,13 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_SOURCES_GRID = "sources_grid"
 		const val KEY_TIPS_CLOSED = "tips_closed"
 		const val KEY_SSL_BYPASS = "ssl_bypass"
+		const val DEFAULT_AUTOSCROLL_SPEED = 0.5f
+		const val DEFAULT_AUTOSCROLL_PAGE_DELAY = 5
+
 		const val KEY_READER_AUTOSCROLL_SPEED = "as_speed"
+		const val KEY_READER_AUTOSCROLL_PAGE_DELAY = "as_page_delay"
 		const val KEY_READER_AUTOSCROLL_FAB = "as_fab"
+		const val KEY_READER_TTS_FAB = "tts_fab"
 		const val KEY_PROXY_TYPE = "proxy_type_2"
 		const val KEY_PROXY_ADDRESS = "proxy_address"
 		const val KEY_PROXY_PORT = "proxy_port"
@@ -1268,10 +1322,10 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 		const val KEY_QUICK_FILTER = "quick_filter"
 		const val KEY_COLLAPSE_DESCRIPTION = "description_collapse"
 		const val KEY_MANGA_LIST_BADGES = "manga_list_badges"
-		const val KEY_PENDING_EXTENSION_DOWNLOADS = "pending_extension_downloads"
 		const val KEY_NOVEL_SOURCE_IDS = "novel_source_ids"
 		const val KEY_GLOBAL_SEARCH_NOVEL_SCOPE = "global_search_novel_scope"
-		const val KEY_SEARCH_HIDE_EMPTY = "search_hide_empty"
+		const val KEY_SEARCH_PINNED_ONLY = "search_pinned_only"
+		const val KEY_SEARCH_LOCAL_ONLY = "search_local_only"
 		const val KEY_SHIZUKU_INSTALLER = "shizuku_installer"
 		const val KEY_PRIVATE_INSTALLER = "private_installer"
 		const val KEY_AUTO_UPDATE_EXTENSIONS = "auto_update_extensions"

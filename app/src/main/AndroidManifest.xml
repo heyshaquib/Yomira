@@ -18,6 +18,7 @@
 	<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 	<uses-permission
 		android:name="android.permission.REQUEST_INSTALL_PACKAGES"
 		tools:ignore="RequestInstallPackagesPolicy" />
@@ -40,6 +41,9 @@
 		</intent>
 		<intent>
 			<action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+		</intent>
+		<intent>
+			<action android:name="android.intent.action.TTS_SERVICE" />
 		</intent>
 	</queries>
 
@@ -325,6 +329,11 @@
 			android:exported="false"
 			android:label="@string/prefetch_content" />
 		<service
+			android:name="org.koitharu.kotatsu.reader.ui.tts.ReaderTtsService"
+			android:exported="false"
+			android:foregroundServiceType="mediaPlayback"
+			android:label="@string/text_to_speech" />
+		<service
 			android:name="org.koitharu.kotatsu.browser.AdListUpdateService"
 			android:exported="false" />
 
@@ -409,6 +418,39 @@
 				android:name="android.appwidget.provider"
 				android:resource="@xml/appwidget_favorites" />
 		</receiver>
+
+		<receiver
+			android:name="org.koitharu.kotatsu.widget.history.HistoryWidget"
+			android:exported="true"
+			android:label="@string/widget_history">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+				<action android:name="android.intent.action.CONFIGURATION_CHANGED" />
+				<action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+				<action android:name="org.koitharu.kotatsu.widget.history.REFRESH" />
+				<action android:name="org.koitharu.kotatsu.widget.history.CLICK" />
+			</intent-filter>
+			<meta-data
+				android:name="android.appwidget.provider"
+				android:resource="@xml/appwidget_history" />
+		</receiver>
+
+		<service
+			android:name="org.koitharu.kotatsu.widget.history.HistoryWidgetService"
+			android:exported="false"
+			android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+		<activity
+			android:name="org.koitharu.kotatsu.widget.history.HistoryWidgetConfigActivity"
+			android:exported="true"
+			android:label="@string/widget_history_style"
+			android:theme="@style/Theme.Kotatsu.Transparent">
+			<intent-filter>
+				<action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+			</intent-filter>
+		</activity>
+
 
 		<activity
 			android:name="org.koitharu.kotatsu.widget.favorites.FavoritesWidgetConfigActivity"
