@@ -61,6 +61,7 @@ import org.koitharu.kotatsu.core.ui.dialog.setCheckbox
 import org.koitharu.kotatsu.core.ui.util.MenuInvalidator
 import org.koitharu.kotatsu.core.ui.widgets.ZoomControl
 import org.koitharu.kotatsu.core.util.IdlingDetector
+import org.koitharu.kotatsu.core.util.ShareHelper
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.hapticFeedback
 import org.koitharu.kotatsu.core.util.ext.getThemeColor
@@ -211,6 +212,7 @@ class ReaderActivity :
             if (readerManager.isEpub) viewBinding.actionsView.setSliderReversed(it)
         }
         viewModel.onPageSaved.observeEvent(this, PagesSavedObserver(viewBinding.container))
+        viewModel.onPageReadyToShare.observeEvent(this) { ShareHelper(this).shareImage(it) }
         viewModel.uiState.zipWithPrevious().observe(this, this::onUiStateChanged)
         combine(
             viewModel.isLoading,
@@ -677,6 +679,10 @@ class ReaderActivity :
 
     override fun onSavePageClick() {
         viewModel.saveCurrentPage(pageSaveHelper)
+    }
+
+    override fun onSharePageClick() {
+        viewModel.shareCurrentPage(pageSaveHelper)
     }
 
     override fun onScrollTimerClick(isLongClick: Boolean) {
