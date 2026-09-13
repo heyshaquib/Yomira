@@ -35,7 +35,7 @@ import org.koitharu.kotatsu.core.util.ext.start
 import org.koitharu.kotatsu.core.util.ext.tryLaunch
 import org.koitharu.kotatsu.databinding.ActivityOverrideEditBinding
 import org.koitharu.kotatsu.picker.ui.PageImagePickContract
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 import javax.inject.Inject
 
 /**
@@ -78,7 +78,7 @@ class OverrideConfigActivity : BaseActivity<ActivityOverrideEditBinding>(), Acti
 			ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
 		)
 		viewBinding.composeView.setContent {
-			DropSauceTheme {
+			YomiraTheme {
 				val density = LocalDensity.current
 				val data by viewModel.data.collectAsState()
 				val isLoading by viewModel.isLoading.collectAsState()

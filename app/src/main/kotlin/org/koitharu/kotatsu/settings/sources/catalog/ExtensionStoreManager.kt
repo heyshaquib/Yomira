@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.settings.sources.catalog
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.koitharu.kotatsu.core.prefs.AppSettings
+import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.mihon.MihonExtensionLoader
+import org.koitharu.kotatsu.mihon.MihonExtensionManager
 import org.koitharu.kotatsu.mihon.model.MihonExtensionInfo
 import java.net.URI
 import javax.inject.Inject
@@ -38,6 +42,8 @@ class ExtensionStoreManager @Inject constructor(
 	private val registry: ExtensionStoreRegistry,
 	private val repository: ExternalExtensionRepoRepository,
 	private val extensionLoader: MihonExtensionLoader,
+	private val extensionManager: MihonExtensionManager,
+	private val settings: AppSettings,
 ) {
 
 	private val mutex = Mutex()
