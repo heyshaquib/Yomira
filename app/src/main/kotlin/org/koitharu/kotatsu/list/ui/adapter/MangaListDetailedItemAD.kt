@@ -25,6 +25,7 @@ fun mangaListDetailedItemAD(
 	bind { payloads ->
 		binding.textViewTitle.text = item.title
 		binding.textViewSource.text = item.source.getTitle(context)
+		binding.imageViewFavicon.setImageAsync(item.source)
 		binding.textViewAuthor.textAndVisible = item.manga.authors.joinToString(", ")
 		binding.progressView.setProgress(
 			value = item.progress,
