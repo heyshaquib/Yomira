@@ -28,7 +28,7 @@ import org.koitharu.kotatsu.core.model.LocalMangaSource
 import org.koitharu.kotatsu.core.nav.router
 import org.koitharu.kotatsu.core.ui.BaseFragment
 import org.koitharu.kotatsu.core.ui.dialog.BigButtonsAlertDialog
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 import org.koitharu.kotatsu.settings.compose.MultiChoiceDialog
 import org.koitharu.kotatsu.core.ui.list.ListSelectionController
 import org.koitharu.kotatsu.core.ui.list.OnListItemClickListener
@@ -215,7 +215,7 @@ class ExploreFragment :
 		val host = ComposeView(requireContext())
 		content.addView(host)
 		host.setContent {
-			DropSauceTheme {
+			YomiraTheme {
 				MultiChoiceDialog(
 					title = stringResource(R.string.filter_by_language),
 					entries = labels,
