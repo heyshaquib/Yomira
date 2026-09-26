@@ -524,7 +524,7 @@ class ReaderActivity :
             // epub highlights keep the exact character offset in `page`; scroll is only a coarse permille
             jumpToChapter(
                 bookmark.chapterId,
-                page = 0,
+                page = ReaderState.EPUB_PAGE_CENTERED,
                 scroll = ReaderState.encodeEpubOffset(bookmark.page),
                 isPeekPreferred = true,
             )
