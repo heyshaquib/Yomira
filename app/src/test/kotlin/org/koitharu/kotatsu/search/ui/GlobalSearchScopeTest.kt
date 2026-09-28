@@ -7,20 +7,6 @@ import java.io.File
 class GlobalSearchScopeTest {
 
 	@Test
-	fun `scope toggle is highlighted inside the empty search hint`() {
-		val menu = resource("menu/opt_search_suggestion.xml")
-		val activity = source("main/ui/MainActivity.kt")
-
-		assertTrue(!menu.contains("""android:id="@+id/action_search_scope""""))
-		assertTrue(activity.contains("searchView.hint=SpannableString(hintText)"))
-		assertTrue(activity.contains(").uppercase()"))
-		assertTrue(activity.contains("editText.hintas?Spanned"))
-		assertTrue(activity.contains("searchSuggestionViewModel.toggleSearchScope()"))
-		assertTrue(activity.contains("Layout.getDesiredWidth(hint,0,scopeStart,textPaint)"))
-		assertTrue(activity.contains("event.x!inscopeStartX..scopeEndX"))
-	}
-
-	@Test
 	fun `global search uses a transparent selection handle window`() {
 		val layouts = listOf(
 			"layout/activity_main.xml",
@@ -34,14 +20,14 @@ class GlobalSearchScopeTest {
 	}
 
 	@Test
-	fun `scope choice is persisted and refreshes suggestions`() {
+	fun `scope choice on the results screen is persisted`() {
 		val settings = source("core/prefs/AppSettings.kt")
-		val suggestions = source("search/ui/suggestion/SearchSuggestionViewModel.kt")
+		val search = source("search/ui/multi/SearchViewModel.kt")
 
 		assertTrue(settings.contains("varisGlobalSearchNovelScope:Boolean"))
 		assertTrue(settings.contains("KEY_GLOBAL_SEARCH_NOVEL_SCOPE"))
-		assertTrue(suggestions.contains("observeAsFlow(AppSettings.KEY_GLOBAL_SEARCH_NOVEL_SCOPE)"))
-		assertTrue(suggestions.contains("settings.isGlobalSearchNovelScope=!settings.isGlobalSearchNovelScope"))
+		assertTrue(search.contains("MutableStateFlow(settings.isGlobalSearchNovelScope)"))
+		assertTrue(search.contains("settings.isGlobalSearchNovelScope=value"))
 	}
 
 	@Test
@@ -70,7 +56,6 @@ class GlobalSearchScopeTest {
 		assertTrue(menu.contains("action_filter_pinned_only)?.run{isChecked=viewModel.isPinnedOnly"))
 		assertTrue(menu.contains("action_filter_local_only)?.isChecked=viewModel.isLocalOnly"))
 	}
-
 	private fun resource(relativePath: String): String {
 		return sequenceOf(
 			File("src/main/res", relativePath),

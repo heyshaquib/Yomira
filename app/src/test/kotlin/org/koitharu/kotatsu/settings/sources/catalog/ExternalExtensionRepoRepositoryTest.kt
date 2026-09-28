@@ -44,6 +44,7 @@ class ExternalExtensionRepoRepositoryTest {
 			ExternalExtensionRepoRepository(client).validateStore("https://example.com/community/extensions/")
 		}
 
+		// Host only: extensionStoreUrlLabel dropped the path, which printed most of the url back.
 		assertEquals("example.com", result.store.name)
 		assertEquals(null, result.store.fingerprint)
 		assertTrue(result.catalog.isEmpty())

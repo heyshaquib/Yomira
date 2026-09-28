@@ -53,8 +53,9 @@ class NovelExtensionCompatibilityTest {
 			"src/main/kotlin/org/koitharu/kotatsu/browser/cloudflare/CloudFlareActivity.kt",
 		).readText()
 
+		// Applies to every source now (lnreader included), not only LN_ ones.
 		assertTrue(activity.contains("CloudFlareHelper.getClearanceCookie(cookieJar, it)"))
-		assertTrue(activity.contains("onCheckPassed("))
+		assertTrue(activity.contains("onCheckPassed(silentFor = clearance)"))
 	}
 
 	@Test
