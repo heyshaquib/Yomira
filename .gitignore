@@ -78,3 +78,4 @@ build_release_apk.bat
 # Unrelated scratch files that end up in the project root
 /*.json
 /*.html
+/AGENTS.md
