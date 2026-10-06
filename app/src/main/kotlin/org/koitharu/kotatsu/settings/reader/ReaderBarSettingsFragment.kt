@@ -158,6 +158,7 @@ private fun ControlRow(
 ) {
 	SettingsItem(
 		title = stringResource(control.titleResId),
+		subtitle = control.summaryResId.takeIf { it != 0 }?.let { stringResource(it) },
 		icon = control.iconResId,
 		shape = shape,
 		onClick = onToggle,
