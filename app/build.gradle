@@ -23,8 +23,8 @@ android {
 		applicationId = 'dev.heyshaquib.yomira'
 		minSdk = 26
 		targetSdk = 37
-		versionCode = 85
-		versionName = '1.1.6'
+		versionCode = 86
+		versionName = '1.1.7'
 		testInstrumentationRunner = 'org.koitharu.kotatsu.HiltTestRunner'
 		ksp {
 			arg('room.generateKotlin', 'true')
