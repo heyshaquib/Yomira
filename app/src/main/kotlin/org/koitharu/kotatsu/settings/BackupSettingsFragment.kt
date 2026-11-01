@@ -33,7 +33,7 @@ import org.koitharu.kotatsu.backup.local.domain.BackupUtils
 import org.koitharu.kotatsu.backup.local.ui.backup.BackupService
 import org.koitharu.kotatsu.backup.local.ui.periodical.PeriodicalBackupSettingsFragment
 import org.koitharu.kotatsu.backup.local.ui.restore.RestoreDialogFragment
-import org.koitharu.kotatsu.core.ui.dialog.buildAlertDialog
+import org.koitharu.kotatsu.core.ui.dialog.showConfirmDialog
 import org.koitharu.kotatsu.core.util.ext.checkNotificationPermission
 import org.koitharu.kotatsu.core.util.ext.getDisplayMessage
 import org.koitharu.kotatsu.core.util.ext.observeEvent
@@ -164,16 +164,17 @@ class BackupSettingsFragment : BaseComposeSettingsFragment(R.string.backup_resto
 			Toast.makeText(requireContext(), R.string.Yomira_migration_running, Toast.LENGTH_SHORT).show()
 			return
 		}
-		buildAlertDialog(requireContext()) {
-			setTitle(R.string.migrate_from_Yomira)
-			setMessage(R.string.migrate_from_Yomira_confirm)
-			setNegativeButton(android.R.string.cancel, null)
-			setPositiveButton(R.string.migrate_from_Yomira) { _, _ ->
-				if (YomiraMigrationService.start(requireContext())) {
-					Toast.makeText(requireContext(), R.string.Yomira_migration_running, Toast.LENGTH_SHORT).show()
-				}
+		showConfirmDialog(
+			context = requireContext(),
+			icon = R.drawable.ic_migrate,
+			title = getString(R.string.migrate_from_Yomira),
+			message = getString(R.string.migrate_from_Yomira_confirm),
+			confirmLabel = getString(R.string.migrate_from_Yomira),
+		) {
+			if (YomiraMigrationService.start(requireContext())) {
+				Toast.makeText(requireContext(), R.string.Yomira_migration_running, Toast.LENGTH_SHORT).show()
 			}
-		}.show()
+		}
 	}
 
 	private fun runMihonExportJob(uri: Uri) {
