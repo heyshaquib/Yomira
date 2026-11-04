@@ -56,17 +56,18 @@ android {
 		debug {
 			applicationIdSuffix = '.debug'
 		}
-		preview {
-			applicationIdSuffix = '.preview'
-			minifyEnabled = false
-			debuggable = true
-			signingConfig = signingConfigs.release
-		}
 		release {
 			minifyEnabled = true
 			shrinkResources = true
 			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 			signingConfig signingConfigs.release
+		}
+		// An exact copy of release (shrunk, not debuggable) that installs as its own app, for testing.
+		preview {
+			initWith release
+			applicationIdSuffix = '.preview'
+			matchingFallbacks = ['release']
+			signingConfig = signingConfigs.findByName('release') ?: signingConfigs.debug
 		}
 	}
 	buildFeatures {
