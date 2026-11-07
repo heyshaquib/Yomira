@@ -11,6 +11,7 @@ import androidx.activity.ComponentDialog
 import androidx.activity.findViewTreeOnBackPressedDispatcherOwner
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -215,6 +216,8 @@ fun ExpressiveDialogCard(
 			// Concentric with the round corner button: its radius plus the card padding.
 			shape = RoundedCornerShape(CornerButtonSize / 2 + CardPadding),
 			color = colors.surfaceContainer,
+			// Same outline as the floating nav bar
+			border = BorderStroke(1.dp, colors.outlineVariant),
 			modifier = Modifier
 				.fillMaxWidth()
 				.widthIn(max = DialogMaxWidth)
