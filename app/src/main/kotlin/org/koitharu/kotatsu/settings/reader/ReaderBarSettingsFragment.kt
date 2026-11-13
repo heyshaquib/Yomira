@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
+import org.koitharu.kotatsu.settings.compose.SettingsSwitch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -168,7 +168,7 @@ private fun ControlRow(
 					ReorderButton(R.drawable.ic_arrow_up, canMoveUp, onMoveUp)
 					ReorderButton(R.drawable.ic_arrow_down, canMoveDown, onMoveDown)
 				}
-				Switch(checked = isShown, onCheckedChange = { onToggle() })
+				SettingsSwitch(checked = isShown, onCheckedChange = { onToggle() })
 			}
 		},
 	)
