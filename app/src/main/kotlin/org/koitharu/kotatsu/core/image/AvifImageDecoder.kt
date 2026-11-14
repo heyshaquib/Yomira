@@ -19,6 +19,18 @@ import kotlinx.coroutines.runInterruptible
 import okio.Buffer
 import org.aomedia.avif.android.AvifDecoder
 import org.koitharu.kotatsu.core.util.ext.readByteBuffer
+import kotlin.math.roundToInt
+
+/** Downscales a fully decoded bitmap to the requested size, keeping its proportions. */
+private fun Bitmap.toDecodeResult(options: Options): DecodeResult {
+	val (dstWidth, dstHeight) = DecodeUtils.computeDstSize(width, height, options.size, options.scale, options.maxBitmapSize)
+	// The destination is only a box to fit or fill: scaling straight to it would squash the image
+	val multiplier = DecodeUtils.computeSizeMultiplier(width, height, dstWidth, dstHeight, options.scale, options.maxBitmapSize)
+	if (multiplier >= 1.0) return DecodeResult(image = asImage(), isSampled = false)
+	val scaled = scale((width * multiplier).roundToInt().coerceAtLeast(1), (height * multiplier).roundToInt().coerceAtLeast(1))
+	recycle()
+	return DecodeResult(image = scaled.asImage(), isSampled = true)
+}
 
 class AvifImageDecoder(
 	private val source: ImageSource,
@@ -48,27 +60,7 @@ class AvifImageDecoder(
 					message = AvifDecoder.resultToString(result),
 				)
 			}
-			// downscaling
-			val (dstWidth, dstHeight) = DecodeUtils.computeDstSize(
-				srcWidth = bitmap.width,
-				srcHeight = bitmap.height,
-				targetSize = options.size,
-				scale = options.scale,
-				maxSize = options.maxBitmapSize,
-			)
-			if (dstWidth < bitmap.width || dstHeight < bitmap.height) {
-				val scaled = bitmap.scale(dstWidth, dstHeight)
-				bitmap.recycle()
-				DecodeResult(
-					image = scaled.asImage(),
-					isSampled = true,
-				)
-			} else {
-				DecodeResult(
-					image = bitmap.asImage(),
-					isSampled = false,
-				)
-			}
+			bitmap.toDecodeResult(options)
 		} finally {
 			decoder.release()
 		}
@@ -89,6 +81,31 @@ class AvifImageDecoder(
 		override fun equals(other: Any?) = other is Factory
 
 		override fun hashCode() = javaClass.hashCode()
+
+		/** JPEG XL (covers, page thumbnails): same sniffing, bundled decoder, scaled to the request. */
+		class Jxl : Decoder.Factory {
+
+			override fun create(result: SourceFetchResult, options: Options, imageLoader: ImageLoader): Decoder? {
+				val isJxl = result.mimeType == "image/jxl" || runCatching {
+					result.source.source().peek().use { peek ->
+						val head = Buffer()
+						peek.read(head, JXL_HEADER_SIZE.toLong())
+						isJxlHeader(head.readByteArray())
+					}
+				}.getOrDefault(false)
+				if (!isJxl) return null
+				return Decoder {
+					runInterruptible {
+						val bytes = result.source.source().use { it.readByteArray() }
+						BitmapDecoderCompat.decodeJxl(bytes).toDecodeResult(options)
+					}
+				}
+			}
+
+			override fun equals(other: Any?) = other is Jxl
+
+			override fun hashCode() = javaClass.hashCode()
+		}
 
 		/**
 		 * The mime type is unreliable: images served from the disk cache carry none at all, and some

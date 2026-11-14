@@ -15,16 +15,20 @@ import coil3.util.MimeTypeMap as CoilMimeTypeMap
 object MimeTypes {
 
 	fun getMimeTypeFromExtension(fileName: String): MimeType? {
-		return CoilMimeTypeMap.getMimeTypeFromExtension(getNormalizedExtension(fileName) ?: return null)
-			?.toMimeTypeOrNull()
+		val ext = getNormalizedExtension(fileName) ?: return null
+		return CoilMimeTypeMap.getMimeTypeFromExtension(ext)?.toMimeTypeOrNull()
+			?: "image/jxl".takeIf { ext == "jxl" }?.toMimeTypeOrNull()
 	}
 
 	fun getMimeTypeFromUrl(url: String): MimeType? {
 		return CoilMimeTypeMap.getMimeTypeFromUrl(url)?.toMimeTypeOrNull()
+			?: getMimeTypeFromExtension(url.substringBefore('#').substringBefore('?'))
 	}
 
 	fun getExtension(mimeType: MimeType?): String? {
-		return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType?.toString() ?: return null)?.nullIfEmpty()
+		val type = mimeType?.toString() ?: return null
+		return MimeTypeMap.getSingleton().getExtensionFromMimeType(type)?.nullIfEmpty()
+			?: "jxl".takeIf { type == "image/jxl" } // not in the platform's table
 	}
 
 	@Blocking
