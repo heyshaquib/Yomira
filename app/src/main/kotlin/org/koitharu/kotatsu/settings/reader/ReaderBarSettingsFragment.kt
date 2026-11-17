@@ -5,7 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,14 +20,20 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import org.koitharu.kotatsu.settings.compose.SettingsSwitch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.FloatState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
@@ -192,6 +203,74 @@ private fun ReorderButton(
 			colorFilter = ColorFilter.tint(
 				MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.3f),
 			),
+		)
+	}
+}
+
+/**
+ * Rows displaced by a drag are re-composed straight into their new slot, which reads as a jump.
+ * Offset the row back to where it used to be and spring it into place so it visibly travels.
+ * The dragged row is excluded — it already follows the finger.
+ */
+@Composable
+internal fun rememberReorderSlide(
+	index: Int,
+	pitch: Float,
+	isDragging: Boolean,
+): FloatState {
+	val slide = remember { mutableFloatStateOf(0f) }
+	val previousIndex = remember { mutableIntStateOf(index) }
+	if (previousIndex.intValue != index) {
+		if (pitch > 0f && !isDragging) {
+			slide.floatValue += (previousIndex.intValue - index) * pitch
+		}
+		previousIndex.intValue = index
+	}
+	LaunchedEffect(index) {
+		if (slide.floatValue != 0f) {
+			animate(
+				initialValue = slide.floatValue,
+				targetValue = 0f,
+				animationSpec = spring(
+					dampingRatio = Spring.DampingRatioNoBouncy,
+					stiffness = Spring.StiffnessMediumLow,
+				),
+			) { value, _ -> slide.floatValue = value }
+		}
+	}
+	return slide
+}
+
+@Composable
+internal fun DragHandle(
+	onDragStart: () -> Unit,
+	onDrag: (Float) -> Unit,
+	onDragEnd: () -> Unit,
+) {
+	val currentOnDragStart by rememberUpdatedState(onDragStart)
+	val currentOnDrag by rememberUpdatedState(onDrag)
+	val currentOnDragEnd by rememberUpdatedState(onDragEnd)
+	Box(
+		modifier = Modifier
+			.size(44.dp)
+			.pointerInput(Unit) {
+				detectDragGestures(
+					onDragStart = { currentOnDragStart() },
+					onDragEnd = { currentOnDragEnd() },
+					onDragCancel = { currentOnDragEnd() },
+					onDrag = { change, amount ->
+						change.consume()
+						currentOnDrag(amount.y)
+					},
+				)
+			},
+		contentAlignment = Alignment.Center,
+	) {
+		Image(
+			painter = rememberAnyDrawablePainter(R.drawable.ic_reorder_handle),
+			contentDescription = null,
+			modifier = Modifier.size(24.dp),
+			colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
 		)
 	}
 }
