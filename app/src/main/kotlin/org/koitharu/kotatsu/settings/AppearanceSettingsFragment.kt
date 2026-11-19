@@ -286,7 +286,8 @@ private fun AppearanceScreen(
 	var pagesTab by rememberBooleanPref(AppSettings.KEY_PAGES_TAB, true)
 	var detailsTab by rememberStringPref(AppSettings.KEY_DETAILS_TAB, "-1")
 
-	var searchSuggestions by rememberStringSetPref(AppSettings.KEY_SEARCH_SUGGESTION_TYPES, emptySet())
+	// Same default as AppSettings.searchSuggestionTypes: every type on until picked otherwise.
+	var searchSuggestions by rememberStringSetPref(AppSettings.KEY_SEARCH_SUGGESTION_TYPES, searchSuggestionValues.toSet())
 	var mainFab by rememberBooleanPref(AppSettings.KEY_MAIN_FAB, true)
 	var navLabels by rememberBooleanPref(AppSettings.KEY_NAV_LABELS, true)
 	var navPinned by rememberBooleanPref(AppSettings.KEY_NAV_PINNED, true)
