@@ -28,7 +28,6 @@ import org.koitharu.kotatsu.mihon.model.ExternalRepoInfo
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionInstallMode
 import org.koitharu.kotatsu.settings.sources.catalog.ExtensionStoreRegistryState
 import org.koitharu.kotatsu.R
-import org.koitharu.kotatsu.core.os.AppIcon
 import org.koitharu.kotatsu.core.model.ContentWarning
 import org.koitharu.kotatsu.core.model.ZoomMode
 import org.koitharu.kotatsu.core.network.DoHProvider
@@ -113,10 +112,6 @@ class AppSettings @Inject constructor(@ApplicationContext context: Context) {
 	fun setColorScheme(value: ColorScheme) = prefs.edit {
 		putEnumValue(KEY_COLOR_THEME, value)
 	}
-
-	var appIcon: AppIcon
-		get() = prefs.getEnumValue(KEY_APP_ICON, AppIcon.DEFAULT)
-		set(value) = prefs.edit { putEnumValue(KEY_APP_ICON, value) }
 
 	val isAmoledTheme: Boolean
 		get() = prefs.getBoolean(KEY_THEME_AMOLED, false)
