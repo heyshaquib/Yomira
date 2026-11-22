@@ -32,6 +32,9 @@ import org.koitharu.kotatsu.local.domain.model.LocalManga
 import org.koitharu.kotatsu.parsers.util.runCatchingCancellable
 import java.io.File
 import java.io.IOException
+import java.util.zip.Deflater
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 @Reusable
