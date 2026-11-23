@@ -112,7 +112,6 @@ private enum class SettingsSection(
 	val paletteKey: String,
 	val summaryRes: IntArray,
 	val fragmentClass: Class<out Fragment>,
-	val tintIcon: Boolean = true,
 ) {
 	SYNC(
 		R.string.google_drive_sync, R.drawable.ic_gdrive, "sync",
@@ -198,7 +197,6 @@ private fun RootSettingsContent(
 							subtitle = subtitle,
 							icon = section.iconRes,
 							iconColors = CategoryPalette.forKey(section.paletteKey),
-							tintIcon = section.tintIcon,
 							shape = pos.shape,
 							onClick = { onSectionClick(section) },
 						)
