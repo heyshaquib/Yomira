@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- Wallpaper tone of onSecondaryContainer. Some ROMs (Vivo FuntouchOS, Android 15) return a broken
+	     system_on_secondary_container_*, which Material maps it to on 34+; the tonal palette is reliable. -->
+	<color name="dynamic_on_secondary_container">@android:color/system_accent2_100</color>
+</resources>
