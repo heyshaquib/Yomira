@@ -47,7 +47,7 @@ import org.koitharu.kotatsu.explore.ui.model.MangaSourceItem
 import org.koitharu.kotatsu.list.ui.model.TipModel
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.settings.compose.ChoiceDialogCard
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -91,7 +91,7 @@ class ExploreFragment :
 			val isNovelFirst by viewModel.novelTabFirst.collectAsState()
 			val isSingleKind by viewModel.singleKind.collectAsState()
 			val hasUpdates by viewModel.hasExtensionUpdates.collectAsState()
-			DropSauceTheme {
+			YomiraTheme {
 				ExploreScreen(
 					suggestions = suggestions,
 					sources = sources,
