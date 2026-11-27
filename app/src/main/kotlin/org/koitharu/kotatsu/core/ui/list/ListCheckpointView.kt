@@ -67,7 +67,7 @@ import kotlinx.coroutines.delay
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.util.ext.HapticEffect
 import org.koitharu.kotatsu.core.util.ext.rememberHapticEffect
-import org.koitharu.kotatsu.settings.compose.DropSauceTheme
+import org.koitharu.kotatsu.settings.compose.YomiraTheme
 
 /**
  * Simple Material 3 Expressive "Last position" floating pill with spring entrance, press squircle
@@ -93,7 +93,7 @@ class ListCheckpointView @JvmOverloads constructor(
 		clipToPadding = false
 		setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
 		setContent {
-			DropSauceTheme {
+			YomiraTheme {
 				val visibleState = remember { MutableTransitionState(false) }
 				visibleState.targetState = isTargetVisible
 
