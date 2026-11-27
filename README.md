@@ -39,16 +39,19 @@ Yomira is a free and open-source manga reader for Android, built to feel quick, 
 ## Screenshots
 
 <p align="center">
-  <img src="assets/main_favorites-preview.jpg" alt="Yomira favorites screen" width="30%" />
-  <img src="assets/manga_details_page-preview.jpg" alt="Yomira manga details screen" width="30%" />
-  <img src="assets/reading_ui-preview.jpg" alt="Yomira reading screen" width="30%" />
-  <img src="assets/novel_reading_ui-preview.jpg" alt="Yomira novel reading screen" width="30%" />
-  <img src="assets/extension_page-preview.jpg" alt="Yomira extensions screen" width="30%" />
-  <img src="assets/settings-preview.jpg" alt="Yomira settings screen" width="30%" />
+  <img src="assets/main_favorites-preview.jpg" alt="Yomira favorites screen" width="31%" />
+  <img src="assets/feed-preview.jpg" alt="Yomira feed screen" width="31%" />
+  <img src="assets/settings-preview.jpg" alt="Yomira settings screen" width="31%" />
+  <img src="assets/extension_page-preview.jpg" alt="Yomira source browsing screen" width="31%" />
+  <img src="assets/manga_details_page-preview.jpg" alt="Yomira details screen" width="31%" />
+  <img src="assets/chapters_list-preview.jpg" alt="Yomira chapter list" width="31%" />
+  <img src="assets/paged_reading_ui-preview.jpg" alt="Yomira manga reading screen" width="31%" />
+  <img src="assets/reading_ui-preview.jpg" alt="Yomira manhwa reading screen" width="31%" />
+  <img src="assets/novel_reading_ui-preview.jpg" alt="Yomira novel reading screen" width="31%" />
 </p>
 
 <p align="center">
-  <sub>Favorites | Details | Reader | Extensions | Settings</sub>
+  <sub>Favorites | Feed | Settings | Source Browsing | Details | Chapters | Manga Reader | Webtoon Reader | Novel Reader</sub>
 </p>
 
 ## Highlights
